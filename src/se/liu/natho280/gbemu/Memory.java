@@ -201,11 +201,11 @@ public class Memory {
      * @param b a button to release
      * @see <a href=https://gbdev.io/pandocs/Joypad_Input.html>Pan Docs - Joypad Input</a>
      */
-    public void releaseButton(Button b) {
+    public void releaseButton(GameButton b) {
 
         switch (b) {
-            case A, B, START, SELECT -> buttonByte |= (1 << Button.buttonToBit(b));
-            case UP, DOWN, LEFT, RIGHT -> dpadByte |= (1 << Button.buttonToBit(b));
+            case A, B, START, SELECT -> buttonByte |= (1 << GameButton.buttonToBit(b));
+            case UP, DOWN, LEFT, RIGHT -> dpadByte |= (1 << GameButton.buttonToBit(b));
         }
 
         switch (b) {
@@ -220,11 +220,11 @@ public class Memory {
      * @param b a button to press
      * @see <a href=https://gbdev.io/pandocs/Joypad_Input.html>Pan Docs - Joypad Input</a>
      */
-    public void setButton(Button b) {
+    public void setButton(GameButton b) {
 
         switch (b) {
-            case A, B, START, SELECT -> buttonByte &= ((1 << Button.buttonToBit(b)) ^ 0xFF);
-            case UP, DOWN, LEFT, RIGHT -> dpadByte &= ((1 << Button.buttonToBit(b)) ^ 0xFF);
+            case A, B, START, SELECT -> buttonByte &= ((1 << GameButton.buttonToBit(b)) ^ 0xFF);
+            case UP, DOWN, LEFT, RIGHT -> dpadByte &= ((1 << GameButton.buttonToBit(b)) ^ 0xFF);
         }
 
         switch (b) {
