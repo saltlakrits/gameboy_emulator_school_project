@@ -38,10 +38,16 @@ public class MemoryViewer implements MBCListener {
 //        memoryTableScrollPane.setViewportView(memoryTableScrollPane);
 //        frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        frame.setLayout(new GridLayout(2, 2));
+
+        frame.setLayout(new GridLayout(2, 1));
         // add disassembly here
-        frame.add(disassemblyTable.getDisassemblyTableScrollPane());
-        frame.add(registerTable.getRegisterScrollPane());
+
+        JPanel topPanel = new JPanel(new GridLayout(1, 2));
+        topPanel.setPreferredSize(new Dimension(0, 0));
+        topPanel.add(disassemblyTable.getDisassemblyTableScrollPane());
+        topPanel.add(registerTable.getRegisterScrollPane());
+
+        frame.add(topPanel);
         frame.add(memoryTable.getMemoryTableScrollPane());
         frame.pack();
         frame.setLocationRelativeTo(null);

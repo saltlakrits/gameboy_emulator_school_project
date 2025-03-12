@@ -61,7 +61,9 @@ public class MemoryTable implements MemoryListener {
         }
 
         memoryTableScrollPane = new JScrollPane(memoryTable);
-        memoryTableScrollPane.setPreferredSize(new Dimension(720, 600));
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        memoryTableScrollPane.setPreferredSize(new Dimension(720, (int)(screenSize.height * 0.4)));
     }
 
     /**
