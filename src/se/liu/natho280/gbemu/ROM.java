@@ -26,15 +26,15 @@ public class ROM {
         loadROM(romPath);
 
         // choose se.liu.natho280.GbEmu.MBC
-        try {
-            this.mbc = switch (rom[0x147].get()) {
-                case 0 -> new MBC0();
-                case 0x1 -> new MBC1(romBankNumber(rom[0x148].get()));
-                default -> throw new IllegalArgumentException("Unknown MBC Type: " + rom[0x148].get());
-            };
-        } catch (IllegalArgumentException e) {
-            CuteLogger.log(Level.SEVERE, e.getMessage());
-        }
+
+        this.mbc = switch (rom[0x147].get()) {
+            case 0 -> new MBC0();
+            case 0x1 -> new MBC1(romBankNumber(rom[0x148].get()));
+            default -> {
+                CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
+                System.exit(-1);
+            }
+        };
 
         // pick RAM size
         this.ram = switch(rom[0x149].get()) {
