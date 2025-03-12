@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+se.liu.natho280.gbemu.Main-Class: se.liu.natho280.gbemu.Main
+
