@@ -13,7 +13,5 @@
     <orderEntry type="library" name="tddd78-annotations" level="project" />
     <orderEntry type="library" name="annotations-26.0.1" level="project" />
     <orderEntry type="library" name="gson" level="project" />
-    <orderEntry type="library" name="gson" level="project" />
-    <orderEntry type="library" name="gson-2.10.1-sources" level="application" />
   </component>
 </module>
