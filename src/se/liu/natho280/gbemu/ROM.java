@@ -2,6 +2,7 @@ package se.liu.natho280.gbemu;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.logging.Level;
 
 /**
@@ -43,7 +44,10 @@ public class ROM {
             case 3 -> new UnsignedByte[RAM_BANK_SIZE * 4];
             case 4 -> new UnsignedByte[RAM_BANK_SIZE * 16];
             case 5 -> new UnsignedByte[RAM_BANK_SIZE * 8];
-            default -> throw new IllegalArgumentException("Unknown RAM size: " + rom[0x149].get());
+            default -> {
+                CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x149].get());
+                System.exit(-1);
+            }
         };
     }
 
@@ -93,9 +97,9 @@ public class ROM {
                 index++;
             }
 
-        } catch (Exception e) {
-            e.printStackTrace(); // can replace with "more robust logging"
-        }
+        } catch (IOException e) {
+	    CuteLogger.log(Level.SEVERE, e.getMessage());
+	}
     }
 
     /**
@@ -113,7 +117,12 @@ public class ROM {
             case 0x52 -> 72;
             case 0x53 -> 80;
             case 0x54 -> 96;
-            default -> throw new IllegalArgumentException("Unknown se.liu.natho280.GbEmu.ROM bank number: 0x" + Integer.toHexString(memoryValue).toUpperCase());
+            default -> {
+                CuteLogger.log(Level.SEVERE,
+                               "Unknown ROM bank number: " +
+                               Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
+                System.exit(-1);
+            }
         };
     }
 }
