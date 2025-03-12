@@ -149,35 +149,8 @@ public class CPU {
      * @param bos BufferedOutputStream; will perhaps be removed
      * @return cycles it took to finish an instruction
      */
-    public int runCycle(BufferedOutputStream bos) {
+    public int runCycle() {
         if (haltBugCounter == 1) regs.addPC(-1);
-        HexFormat hex = HexFormat.of();
-
-//        String stateString = "";
-//
-//        stateString += "Instruction: 0x" + hex.toHexDigits((byte)memory.read(regs.get(se.liu.natho280.GbEmu.Reg.PC))) + " ";
-//
-//        stateString += "A:" + hex.toHexDigits((byte)regs.get(se.liu.natho280.GbEmu.Reg.A)).toUpperCase() + " ";
-//        stateString += "F:" + hex.toHexDigits((byte)regs.get(se.liu.natho280.GbEmu.Reg.F)).toUpperCase() + " ";
-//        stateString += "B:" + hex.toHexDigits((byte)regs.get(se.liu.natho280.GbEmu.Reg.B)).toUpperCase() + " ";
-//        stateString += "C:" + hex.toHexDigits((byte)regs.get(se.liu.natho280.GbEmu.Reg.C)).toUpperCase() + " ";
-//        stateString += "D:" + hex.toHexDigits((byte)regs.get(se.liu.natho280.GbEmu.Reg.D)).toUpperCase() + " ";
-//        stateString += "E:" + hex.toHexDigits((byte)regs.get(se.liu.natho280.GbEmu.Reg.E)).toUpperCase() + " ";
-//        stateString += "H:" + hex.toHexDigits((byte)regs.get(se.liu.natho280.GbEmu.Reg.H)).toUpperCase() + " ";
-//        stateString += "L:" + hex.toHexDigits((byte)regs.get(se.liu.natho280.GbEmu.Reg.L)).toUpperCase() + " ";
-//        stateString += "SP:" + hex.toHexDigits((short)regs.get(se.liu.natho280.GbEmu.Reg.SP)).toUpperCase() + " ";
-//        stateString += "PC:" + hex.toHexDigits((short)regs.get(se.liu.natho280.GbEmu.Reg.PC)).toUpperCase() + " ";
-//        stateString += "PCMEM:" + hex.toHexDigits((byte)memory.read(regs.get(se.liu.natho280.GbEmu.Reg.PC))).toUpperCase() + ","+
-//                hex.toHexDigits((byte)memory.read(regs.get(se.liu.natho280.GbEmu.Reg.PC) + 1)).toUpperCase() + ","+
-//                hex.toHexDigits((byte)memory.read(regs.get(se.liu.natho280.GbEmu.Reg.PC) + 2)).toUpperCase() + "," +
-//                hex.toHexDigits((byte)memory.read(regs.get(se.liu.natho280.GbEmu.Reg.PC) + 3)).toUpperCase() + "\n";
-//
-//        try {
-//            bos.write(stateString.getBytes());
-//            bos.flush();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
         // Check & handle interrupts -- I think this should work?
         checkInterrupts(); // FIXME maybe this should be off for doctor????

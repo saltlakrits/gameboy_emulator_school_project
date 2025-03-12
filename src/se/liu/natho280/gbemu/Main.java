@@ -16,12 +16,8 @@ public class Main {
 
     private static final long MILLIS_PER_FRAME = (long)((1. / 59.73) * 1000);
 
-    private static CPU cpu = null;
-    private static PPU ppu = null;
-    private static Memory memory = null;
-    private static Registers registers = null;
-
     public static void main(String[] args) {
+
         System.out.println("Hello, game boy!");
 
         if (args.length != 1 && args.length != 2) {
@@ -54,7 +50,7 @@ public class Main {
             -- SKIP SERIAL interrupt (this is for link cable, we don't support that anyway)
         DONE RETI instruction (return from interrupt)
 
-        THERE IS NO CHANCE WE ARE ACTUALLY DONE WITH THE se.liu.natho280.GbEmu.PPU YET, we just got simple backgrounds to work.
+        THERE IS NO CHANCE WE ARE ACTUALLY DONE WITH THE se.liu.natho280.GbEmu.ppu YET, we just got simple backgrounds to work.
 
         DONE Implement timer?
 
@@ -77,41 +73,35 @@ public class Main {
         Disassembler...? simple version. This will be tedious as fuck, but not strictly hard, I don't think...
          */
 
-        Display display = new Display(); // display is shared between se.liu.natho280.GbEmu.PPU and frontend
-        memory = new Memory(romPath);
-        registers = new Registers();
+        Display display = new Display(); // display is shared between se.liu.natho280.GbEmu.ppu and frontend
+        Memory memory = new Memory(romPath);
+        Registers registers = new Registers();
 
         MemoryViewer memoryViewer = new MemoryViewer(memory, registers, showDebuggerAtStartup);
 
-        cpu = new CPU(args[0], memory, registers);
+        CPU cpu = new CPU(args[0], memory, registers);
         cpu.setupBoot();
 
         EmuViewer emuViewer = new EmuViewer(memory, display, memoryViewer);
         emuViewer.show();
 
-        ppu = new PPU(display, memory);
+        PPU ppu = new PPU(display, memory);
 
-        int dots = 0;
-        long frameTime;
-
-        int cycles;
-
-        try (FileOutputStream fos = new FileOutputStream("log.txt")) {
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-
-            while (true) {
-                frameTime = System.currentTimeMillis() + 16;
-                dots = 0;
+        while (true) {
+                int dots = 0;
+                long frameTime = System.currentTimeMillis() + 16;
 
                 // run all the dots (T-cycles) for a single frame
                 while (dots < DOTS_PER_FRAME) {
-                    ppuCycle(dots);
+                    int cycles;
+
+                    ppuCycle(dots, ppu, memory);
 
                     if (memoryViewer.getEmulatorPaused() && memoryViewer.getStep()) {
-                        cycles = cpuCycle(bos);
+                        cycles = cpuCycle(cpu);
                         memoryViewer.postStepUpdate();
                     } else if (!memoryViewer.getEmulatorPaused()) {
-                        cycles = cpuCycle(bos);
+                        cycles = cpuCycle(cpu);
                     } else {
                         cycles = 0;
                     }
@@ -121,18 +111,16 @@ public class Main {
                 }
                 // wait until new frame -- this is what limits the emulator speed and should be where the program
                 // spends the majority of the time.
+                // False positive warning imo, we mean to just busy wait for the next frame
                 while (frameTime > System.currentTimeMillis());
-            }
-        } catch (Exception e) {
-            e.printStackTrace(); // can replace with "more robust logging"
         }
     }
 
-    private static int cpuCycle(BufferedOutputStream bos) {
+    private static int cpuCycle(CPU cpu) {
         int cycles;
         if (!cpu.getHalted()) {
             // returns cycles, multiply by 4 to get dots
-            cycles = cpu.runCycle(bos);
+            cycles = cpu.runCycle();
         } else {
             cycles = 1;
         }
@@ -148,7 +136,7 @@ public class Main {
      * sufficient to play a lot of games.
      * @param dots the current dot (T-cycle) count of the frame
      */
-    public static void ppuCycle(int dots) {
+    public static void ppuCycle(int dots, PPU ppu, Memory memory) {
         int ly = dots / 456; // LY, y coordinate
         int modDots = dots % 456; // 339 dots per scanline
 
