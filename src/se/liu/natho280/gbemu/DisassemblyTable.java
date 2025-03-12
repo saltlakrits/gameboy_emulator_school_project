@@ -68,7 +68,6 @@ public class DisassemblyTable {
                 break;
             }
         }
-        //disassemblyTable.highlightRow();
     }
 
     /**
@@ -79,17 +78,8 @@ public class DisassemblyTable {
         int programCounter = 0;
 
         while (programCounter < 0x10000) {
-            // assign result to something!!!!
-//            try {
-//                programCounter = disassembleInstruction(programCounter);
-//            } catch (Exception e) {
-////                e.printStackTrace();
-//                System.out.println((memory.unconditionalRead(programCounter) & 0xF0) >> 4);
-//                System.exit(-1);
-//            }
 
             String[] newRow = new String[2];
-//            newRow[0] = String.format("$%04X  %02X", programCounter, memory.unconditionalRead(programCounter));
 
             programCounter = disassembleInstruction(programCounter, newRow);
             disassemblyTableModel.addRow(newRow);
@@ -109,7 +99,6 @@ public class DisassemblyTable {
         int firstNibble = (memory.unconditionalRead(programCounter) & 0xF0) >> 4;
         int secondNibble = (memory.unconditionalRead(programCounter) & 0xF);
 
-//        String[] newRow = new String[2];
         newRow[0] = String.format("$%04X  %02X", programCounter, memory.unconditionalRead(programCounter));
         byte s8 = 0;
         int d8 = 0;
@@ -621,8 +610,6 @@ public class DisassemblyTable {
                         newRow[1] = "UNDEFINED OPCODE";
                 }
                 break;
-            default:
-                newRow[1] = "UNDEFINED OPCODE";
         };
         return programCounter;
     }
@@ -633,7 +620,7 @@ public class DisassemblyTable {
             case 1 -> "DE";
             case 2 -> "HL";
             case 3 -> "SP";
-            default -> throw new IllegalArgumentException();
+            default -> ""; // unreachable
         };
     }
     
@@ -643,7 +630,7 @@ public class DisassemblyTable {
             case 1 -> "(DE)";
             case 2 -> "(HL+)";
             case 3 -> "(HL-)";
-            default -> throw new IllegalArgumentException();
+            default -> ""; // unreachable
         };
     }
 
@@ -653,7 +640,7 @@ public class DisassemblyTable {
             case 1 -> "D";
             case 2 -> "H";
             case 3 -> "(HL)";
-            default -> throw new IllegalArgumentException();
+            default -> ""; // unreachable
         };
     }
 
@@ -663,7 +650,7 @@ public class DisassemblyTable {
             case 1 -> "E";
             case 2 -> "L";
             case 3 -> "A";
-            default -> throw new IllegalArgumentException();
+            default -> ""; // unreachable
         };
     }
 
@@ -776,8 +763,7 @@ public class DisassemblyTable {
                 } else {
                     return String.format("SET 7, %s", sourceRegString);
                 }
-            default:
-                throw new IllegalArgumentException();
         }
+        return ""; // unreachable
     }
 }

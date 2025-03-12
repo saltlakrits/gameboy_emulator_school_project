@@ -109,10 +109,11 @@ public class Main {
                     memory.subDmaTransferLock(cycles * 4);
                     dots += cycles * 4;
                 }
-                // wait until new frame -- this is what limits the emulator speed and should be where the program
-                // spends the majority of the time.
-                // False positive warning imo, we mean to just busy wait for the next frame
-                while (frameTime > System.currentTimeMillis());
+
+                while (frameTime > System.currentTimeMillis()) {
+                    // wait until new frame -- this is what limits the emulator speed and
+                    // should be where the program spends the majority of it's runtime
+                }
         }
     }
 

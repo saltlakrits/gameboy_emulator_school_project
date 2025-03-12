@@ -1,7 +1,6 @@
 package se.liu.natho280.gbemu;
 
-import java.io.BufferedOutputStream;
-import java.util.HexFormat;
+import java.util.logging.Level;
 
 
 /**
@@ -52,14 +51,23 @@ public class CPU {
     }
 
     private int matchInterruptAddress(int bit) {
-        return switch (bit) {
-            case 0 -> 0x40;
-            case 1 -> 0x48;
-            case 2 -> 0x50;
-            case 3 -> 0x58;
-            case 4 -> 0x60;
-            default -> throw new IllegalArgumentException("Invalid interrupt flag bit: " + bit);
-        };
+        switch (bit) {
+            case 0:
+                return 0x40;
+            case 1:
+                return 0x48;
+            case 2:
+                return 0x50;
+            case 3:
+                return 0x58;
+            case 4:
+                return 0x60;
+            default:
+                CuteLogger.log(Level.SEVERE, "Tried to match interrupt address with bit " + bit +
+                                          ", faulty");
+                System.exit(-1);
+                return 0; // silence language server
+        }
     }
 
     private void checkInterrupts() {
@@ -934,9 +942,6 @@ public class CPU {
                         break;
                 }
                 break;
-            default:
-                System.out.println("Instruction: " + instruction + " is not a recognized instruction!");
-                break;
         }
 
         int returnCycles = cycles;
@@ -1184,13 +1189,21 @@ public class CPU {
      * @return a register label
      */
     private Reg chooseR16(int firstNibble) {
-        return switch (firstNibble) {
-            case 0xC -> Reg.BC;
-            case 0xD -> Reg.DE;
-            case 0xE -> Reg.HL;
-            case 0xF -> Reg.AF;
-            default -> throw new IllegalArgumentException();
-        };
+        switch (firstNibble) {
+            case 0xC:
+                return Reg.BC;
+            case 0xD:
+                return Reg.DE;
+            case 0xE:
+                return Reg.HL;
+            case 0xF:
+                return Reg.AF;
+            default:
+                CuteLogger.log(Level.SEVERE, "Unknown reg 0x" + Integer.toHexString(firstNibble).toUpperCase());
+                System.exit(-1);
+        }
+
+        return null; // unreachable
     }
 
     /**
@@ -1233,22 +1246,44 @@ public class CPU {
         int vec;
         if ((instruction & 0x0F) == 0x7) {
             // something if 0x7
-            vec = switch ((instruction & 0xF0) >> 4) {
-                case 0xC -> 0x00;
-                case 0xD -> 0x10;
-                case 0xE -> 0x20;
-                case 0xF -> 0x30;
-                default -> throw new IllegalArgumentException();
-            };
+            switch ((instruction & 0xF0) >> 4) {
+                case 0xC:
+                    vec = 0x00;
+                    break;
+                case 0xD:
+                    vec = 0x10;
+                    break;
+                case 0xE:
+                    vec = 0x20;
+                    break;
+                case 0xF:
+                    vec = 0x30;
+                    break;
+                default:
+                    CuteLogger.log(Level.SEVERE, "Somehow reached default switch case in callVec?");
+                    vec = 0xFF; // doesn't matter, we're crashing
+                    System.exit(-1);
+            }
         } else {
             // it's 0xF
-            vec = switch ((instruction & 0xF0) >> 4) {
-                case 0xC -> 0x08;
-                case 0xD -> 0x18;
-                case 0xE -> 0x28;
-                case 0xF -> 0x38;
-                default -> throw new IllegalArgumentException();
-            };
+            switch ((instruction & 0xF0) >> 4) {
+                case 0xC:
+                    vec = 0x08;
+                    break;
+                case 0xD:
+                    vec = 0x18;
+                    break;
+                case 0xE:
+                    vec = 0x28;
+                    break;
+                case 0xF:
+                    vec = 0x38;
+                    break;
+                default:
+                    CuteLogger.log(Level.SEVERE, "Somehow reached default switch case in callVec?");
+                    vec = 0xFF; // doesn't matter, we're crashing
+                    System.exit(-1);
+            }
         }
         regs.set(Reg.PC, vec);
         cycles += 3;
@@ -1375,12 +1410,12 @@ public class CPU {
                     cycles += 2;
                 } else if (secondNibble != 0xE) {
                     // cycles: 2, RR r8
-                    regs.setCarryFlag((sourceRegValue & (1 << 0)) != 0);
+                    regs.setCarryFlag((sourceRegValue & (1)) != 0);
                     regs.set(sourceReg, (sourceRegValue >> 1) | (cyFlag << 7));
                     regs.setZeroFlag(regs.get(sourceReg) == 0x0);
                 } else {
                     // cycles: 4, RR (HL)
-                    regs.setCarryFlag((sourceRegValue & (1 << 0)) != 0);
+                    regs.setCarryFlag((sourceRegValue & (1)) != 0);
                     memory.write(regs.get(sourceReg), (sourceRegValue >> 1) | (cyFlag << 7));
                     regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
                     cycles += 2;
@@ -1416,15 +1451,17 @@ public class CPU {
                 regs.setSubtractionFlag(false);
                 regs.setHalfcarryFlag(false);
 
+                final int swapped = (sourceRegValue & 0xF0) >> 4 | (sourceRegValue & 0xF) << 4;
+
                 if (secondNibble <= 7 && secondNibble != 0x6) {
                     // cycles: 2, SWAP r8 (swap the nibbles)
                     regs.setCarryFlag(false);
-                    regs.set(sourceReg, (sourceRegValue & 0xF0) >> 4 | (sourceRegValue & 0xF) << 4);
+                    regs.set(sourceReg, swapped);
                     regs.setZeroFlag(regs.get(sourceReg) == 0x0);
                 } else if (secondNibble == 0x6) {
                     // cycles: 4, SWAP (HL)
                     regs.setCarryFlag(false);
-                    memory.write(regs.get(sourceReg), (sourceRegValue & 0xF0) >> 4 | (sourceRegValue & 0xF) << 4);
+                    memory.write(regs.get(sourceReg), swapped);
                     regs.setZeroFlag(memory.read(regs.get(sourceReg)) == 0x0);
                     cycles += 2;
                 } else if (secondNibble != 0xE) {
