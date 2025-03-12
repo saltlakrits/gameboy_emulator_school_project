@@ -10,8 +10,8 @@ import java.util.HexFormat;
 public class CPU {
     // this is the emulator class, that will have the logic one step above the hardware (kind of)
     // this class is what ultimately utilizes the smaller hardware components to fetch, decode and execute instructions.
-    private Memory memory = null;
-    private Registers regs = null;
+    private Memory memory;
+    private Registers regs;
     private int cycles = 0;
     // interrupt master enable flag, true -> we will call interrupt handlers
     private boolean interruptsEnabled = false;
@@ -163,10 +163,7 @@ public class CPU {
 
         // have instruction, increased PC, now to decode instruction
 
-        // fetch flags to int
-        final int zFlag = regs.getZeroFlag();
-        final int nFlags = regs.getSubtractionFlag();
-        final int hFlag = regs.getHalfcarryFlag();
+        // fetch carry flag
         final int cyFlag = regs.getCarryFlag();
 
         int firstNibble = (instruction & 0xF0) >> 4;
@@ -1320,9 +1317,6 @@ public class CPU {
         cycles++;
         regs.addPC(1);
 
-        final int zFlag = regs.getZeroFlag();
-        final int nFlags = regs.getSubtractionFlag();
-        final int hFlag = regs.getHalfcarryFlag();
         final int cyFlag = regs.getCarryFlag();
 
         Reg sourceReg = Registers.getSourceRegByNibble(secondNibble);

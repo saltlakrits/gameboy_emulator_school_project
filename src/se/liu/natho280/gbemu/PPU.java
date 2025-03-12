@@ -25,8 +25,8 @@ import java.util.List;
  * @see <a href=https://hacktix.github.io/GBEDG/ppu/>Hacktix' Game Boy Emulator Development Guide - se.liu.natho280.GbEmu.PPU</a>
  */
 public class PPU {
-    private Display display = null;
-    private Memory memory = null;
+    private Display display;
+    private Memory memory;
     private final StatLine statLine = new StatLine();
     private int flags = 0;
     private final List<OAM> lineOAMs = new ArrayList<>();
@@ -127,7 +127,7 @@ public class PPU {
         // FF44 = LY
         // FF45 = LYC (LY Compare, this is set by program!)
 
-        boolean statInterrupt = false;
+        boolean statInterrupt;
         switch (label) {
             case ZERO: // hblank mode
                 memory.unconditionalWrite(0xFF41, (statReg & ((3 ^ 0xFF))) | 0x0);
@@ -300,16 +300,13 @@ public class PPU {
             // now choose a pixel to push
             // if LCDC.7 is 0, the screen is off, and should be whiter than white! completely blank! no pixel colors!
 
-            FIFOPixel candidate = null;
-
-//            System.out.println("Sprites in queue!");
-            candidate = sprFifo.pop();
+	    FIFOPixel candidate = sprFifo.pop();
             // If sprite color is 0, the pixel is transparent and should not be drawn
             boolean bgInstead = candidate.colorValue == 0;
             // Priority: 0 = No, 1 = BG and Window colors 1–3 are drawn over this OBJ
-            bgInstead |= candidate.bgPrio && bgFifo.getFirst().colorValue > 0;
+	    bgInstead = bgInstead || (candidate.bgPrio && bgFifo.getFirst().colorValue > 0);
             // if we are to push a pixel from sprFifo, but LCDC.1 is 0, it should be background!
-            bgInstead |= ((lcdc & (1 << 1)) == 0);
+	    bgInstead = bgInstead || ((lcdc & (1 << 1)) == 0);
             if (bgInstead) {
                 // discard and draw bg instead
                 //System.out.println("Discarded sprite!");
@@ -323,11 +320,9 @@ public class PPU {
                 //if ((lcdc & (1 << 0)) == 0) candidate.colorValue = 0x00; // blank it, bg/window is off
             }
 
-            //if (candidate.colorValue != 0)
-            //System.out.println("Pushing a pixel! colorInt: " + Integer.toHexString(candidate.colorValue) + " | colorMap.get(): " + colorMap.get(candidate.colorValue));
             display.putPixel(x, ly, getPixel(candidate.colorValue));
-            // inc x
 
+            // inc x
             x++;
         }
         bgFifo.clear();

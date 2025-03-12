@@ -6,9 +6,9 @@ package se.liu.natho280.gbemu;
  * a lot of information discarded.
  */
 public class FIFOPixel {
-    public int colorValue = 0;
-    public boolean palette = false;
-    public boolean bgPrio = false;
+    public int colorValue;
+    public boolean palette;
+    public boolean bgPrio;
 
     public FIFOPixel(int colorValue, boolean palette, boolean bgPrio) {
         this.colorValue = colorValue;

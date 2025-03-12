@@ -17,17 +17,13 @@ import java.util.List;
  * @see <a href=https://gbdev.io/pandocs/Rendering.html>Pan Docs - Rendering</a>
  */
 public class Display {
-    //private static final EnumMap<se.liu.natho280.GbEmu.Pixel, Integer> colors = createColorMap();
     private final Pixel[][] display = new Pixel[144][160];
     private final List<DisplayListener> displayListeners = new ArrayList<>();
-    private final Object lock = new Object();
     private Pixel[][] displayCopy = new Pixel[144][160];
 
     public Display() {
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
-                //putPixel(x, y, se.liu.natho280.GbEmu.Pixel.WHITE);
-                //display[y][x] = se.liu.natho280.GbEmu.Pixel.WHITE;
                 display[y][x] = Pixel.BLACK;
             }
         }

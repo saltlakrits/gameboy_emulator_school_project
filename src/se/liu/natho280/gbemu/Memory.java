@@ -16,7 +16,7 @@ import java.util.List;
 public class Memory {
     // 0x0000 - 0x3FFF is the se.liu.natho280.GbEmu.ROM (bank 00)
     // 0x4000 - 7FFF is the se.liu.natho280.GbEmu.ROM (bank 1-NN)
-    private ROM rom = null;
+    private ROM rom;
 
     // each location in memory is a byte
     // addresses: 0x0000 through 0xFFFF

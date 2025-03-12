@@ -12,6 +12,7 @@ public class UnsignedByte extends Unsigned {
         super(value);
     }
 
+    @Override
     protected int clamp(int value) {
         return (value & 0xFF);
     }

@@ -10,8 +10,8 @@ import java.awt.event.ActionEvent;
 public class EmuViewer {
     // Frontend for the emulator
 
-    private Memory memory = null;
-    private Display display = null;
+    private Memory memory;
+    private Display display;
     private final JFrame frame = new JFrame("gbEmu");
     private final MemoryViewer memoryViewer;
 
@@ -81,7 +81,7 @@ public class EmuViewer {
     private class PressAction extends AbstractAction {
         private final GameButton button;
 
-        public PressAction(GameButton button) {
+        private PressAction(GameButton button) {
             this.button = button;
         }
 
@@ -94,7 +94,7 @@ public class EmuViewer {
     private class ReleaseAction extends AbstractAction {
         private final GameButton button;
 
-        public ReleaseAction(GameButton button) {
+        private ReleaseAction(GameButton button) {
             this.button = button;
         }
 

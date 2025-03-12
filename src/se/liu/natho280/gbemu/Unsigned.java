@@ -8,8 +8,8 @@ package se.liu.natho280.gbemu;
 public abstract class Unsigned {
     private int value = 0;
 
-    public Unsigned(int value) {
-        this.value = this.clamp(value);
+    protected Unsigned(final int value) {
+        set(value);
     }
 
     public void set(int value) {

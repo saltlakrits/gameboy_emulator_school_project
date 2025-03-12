@@ -12,7 +12,7 @@ import java.awt.*;
  * Once constructed, fetch the JScrollPane with getDissassemblyTableScrollPane and add it to the main JFrame.
  */
 public class DisassemblyTable {
-    private Memory memory = null;
+    private Memory memory;
     private final JTable disassemblyTable;
     private final DefaultTableModel disassemblyTableModel;
     private final JScrollPane disassemblyTableScrollPane;

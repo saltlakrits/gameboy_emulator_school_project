@@ -9,6 +9,7 @@ public class UnsignedShort extends Unsigned {
         super(value);
     }
 
+    @Override
     protected int clamp(int value) {
         return (value & 0xFFFF);
     }

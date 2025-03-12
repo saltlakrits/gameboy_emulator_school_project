@@ -6,9 +6,8 @@ import java.awt.image.BufferedImage;
 
 public class DisplayComponent extends JComponent implements DisplayListener {
     private static final int RESIZE_FACTOR = 4;
-    private Display display = null;
-    private Pixel[][] displayCopy = null;
-    private final Dimension PREFERRED_SIZE = new Dimension(160 * RESIZE_FACTOR, 144 * RESIZE_FACTOR);
+    private Display display;
+    private static final Dimension PREFERRED_SIZE = new Dimension(160 * RESIZE_FACTOR, 144 * RESIZE_FACTOR);
 
     private final BufferedImage image = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
 
@@ -23,7 +22,7 @@ public class DisplayComponent extends JComponent implements DisplayListener {
 
         final Graphics2D g2d = (Graphics2D) g;
 
-        displayCopy = display.getCopy();
+	Pixel[][] displayCopy = display.getCopy();
 
         for (int y = 0; y < display.getHeight(); y++) {
             for (int x = 0; x < display.getWidth(); x++) {
