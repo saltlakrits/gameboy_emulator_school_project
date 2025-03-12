@@ -2,6 +2,7 @@ package se.liu.natho280.gbemu;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.util.logging.Level;
 
 /**
  * Handles the game se.liu.natho280.GbEmu.ROM. Will set the se.liu.natho280.GbEmu.MBC (memory bank controller) appropriately, as long as it is a supported se.liu.natho280.GbEmu.MBC
@@ -25,21 +26,24 @@ public class ROM {
         loadROM(romPath);
 
         // choose se.liu.natho280.GbEmu.MBC
-        this.mbc = switch(rom[0x147].get()) {
-            case 0 -> new MBC0();
-            case 0x1 -> new MBC1(romBankNumber(rom[0x148].get()));
-            default -> throw new IllegalArgumentException();
-        };
+        try {
+            this.mbc = switch (rom[0x147].get()) {
+                case 0 -> new MBC0();
+                case 0x1 -> new MBC1(romBankNumber(rom[0x148].get()));
+                default -> throw new IllegalArgumentException("Unknown MBC Type: " + rom[0x148].get());
+            };
+        } catch (IllegalArgumentException e) {
+            CuteLogger.log(Level.SEVERE, e.getMessage());
+        }
 
         // pick RAM size
         this.ram = switch(rom[0x149].get()) {
-            case 0 -> null;
-            case 1 -> null;
+            case 0, 1 -> null;
             case 2 -> new UnsignedByte[RAM_BANK_SIZE];
             case 3 -> new UnsignedByte[RAM_BANK_SIZE * 4];
             case 4 -> new UnsignedByte[RAM_BANK_SIZE * 16];
             case 5 -> new UnsignedByte[RAM_BANK_SIZE * 8];
-            default -> throw new IllegalArgumentException("Unknown RAM size: " + rom[0x149]);
+            default -> throw new IllegalArgumentException("Unknown RAM size: " + rom[0x149].get());
         };
     }
 
@@ -58,15 +62,7 @@ public class ROM {
      * @see MBC
      */
     public int get(int address) {
-        if (address > 0x7FFF) throw new IllegalArgumentException("Should not try to access se.liu.natho280.GbEmu.ROM at address 0x" + Integer.toHexString(address).toUpperCase());
-        try {
-            return rom[mbc.redirectedAddress(address)].get();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            System.out.println("Cannot access se.liu.natho280.GbEmu.ROM at address 0x" + Integer.toHexString(mbc.redirectedAddress(address)).toUpperCase());
-            System.exit(-1);
-            return 0;
-        }
+        return rom[mbc.redirectedAddress(address)].get();
     }
 
     /**
