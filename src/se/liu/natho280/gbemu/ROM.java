@@ -28,26 +28,39 @@ public class ROM {
 
         // choose se.liu.natho280.GbEmu.MBC
 
-        this.mbc = switch (rom[0x147].get()) {
-            case 0 -> new MBC0();
-            case 0x1 -> new MBC1(romBankNumber(rom[0x148].get()));
-            default -> {
+        switch (rom[0x147].get()) {
+            case 0:
+                this.mbc = new MBC0();
+                break;
+            case 0x1:
+                this.mbc = new MBC1(romBankNumber(rom[0x148].get()));
+                break;
+            default:
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
                 System.exit(-1);
-            }
         };
 
         // pick RAM size
-        this.ram = switch(rom[0x149].get()) {
-            case 0, 1 -> null;
-            case 2 -> new UnsignedByte[RAM_BANK_SIZE];
-            case 3 -> new UnsignedByte[RAM_BANK_SIZE * 4];
-            case 4 -> new UnsignedByte[RAM_BANK_SIZE * 16];
-            case 5 -> new UnsignedByte[RAM_BANK_SIZE * 8];
-            default -> {
+        switch(rom[0x149].get()) {
+            case 0, 1:
+                this.ram = null;
+                break;
+            case 2:
+                this.ram = new UnsignedByte[RAM_BANK_SIZE];
+                break;
+            case 3:
+                this.ram = new UnsignedByte[RAM_BANK_SIZE * 4];
+                break;
+            case 4:
+                this.ram = new UnsignedByte[RAM_BANK_SIZE * 16];
+                break;
+            case 5:
+                this.ram = new UnsignedByte[RAM_BANK_SIZE * 8];
+                break;
+            default:
+                this.ram = null; // doesn't matter, exiting
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x149].get());
                 System.exit(-1);
-            }
         };
     }
 
@@ -113,16 +126,20 @@ public class ROM {
             return (1 << (memoryValue + 1));
         }
 
-        return switch (memoryValue) {
-            case 0x52 -> 72;
-            case 0x53 -> 80;
-            case 0x54 -> 96;
-            default -> {
+        switch (memoryValue) {
+            case 0x52:
+                return 72;
+            case 0x53:
+                return 80;
+            case 0x54:
+                return 96;
+            default:
                 CuteLogger.log(Level.SEVERE,
                                "Unknown ROM bank number: " +
                                Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
                 System.exit(-1);
-            }
-        };
+        }
+
+        return 0; // unreachable
     }
 }
