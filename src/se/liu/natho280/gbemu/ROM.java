@@ -112,6 +112,7 @@ public class ROM {
 
         } catch (IOException e) {
 	    CuteLogger.log(Level.SEVERE, e.getMessage());
+            System.exit(-1);
 	}
     }
 

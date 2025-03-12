@@ -27,7 +27,7 @@ public class Memory {
     private int dmaTransferLock = 0;
     private boolean vramLocked = false;
 
-    private double divTimer = 0.;
+    private double divTimer = 0.0;
     private int flooredDivTimer = 0;
     private int tima = 0;
     private int timaCycles = 0;
@@ -70,12 +70,20 @@ public class Memory {
         int timerControl = read(0xFF07); // TAC register
         if ((timerControl & 0x4) == 0) return; // if bit 3 is off, TIMA isn't incremented
 
-        int mod = switch (timerControl & 0x3) {
-            case 0 -> 256;
-            case 1 -> 4;
-            case 2 -> 16;
-            case 3 -> 64;
-            default -> throw new IllegalArgumentException();
+        int mod = 0;
+        switch (timerControl & 0x3) {
+            case 0:
+                mod = 256;
+                break;
+            case 1:
+                mod = 4;
+                break;
+            case 2:
+                mod = 16;
+                break;
+            case 3:
+                mod = 64;
+                break;
         };
 
         timaCycles += cycles;
@@ -124,7 +132,7 @@ public class Memory {
             }
             // lock all read/write for 640 dots
             dmaTransferLock = 640;
-        } else if (address >= 0x8000 && address <= 0x9FFF) {
+        } else if (address <= 0x9FFF) {
             if (!vramLocked) memory[address] = new UnsignedByte(value);
         } else {
             if (dmaTransferLock == 0) memory[address] = new UnsignedByte(value);

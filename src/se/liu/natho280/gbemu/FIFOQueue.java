@@ -1,5 +1,7 @@
 package se.liu.natho280.gbemu;
 
+import java.lang.module.FindException;
+
 /**
  * Small custom queues for FIFOPixels because the existing ones are a bit slow and clunky.
  * We have the benefit of not having to generalize anything in our implementation, and happily a 32-bit integer is
@@ -45,7 +47,7 @@ public class FIFOQueue {
      */
     public void add(FIFOPixel fpx) {
         if (length == CAPACITY) {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new IndexOutOfBoundsException("Queue is full");
         }
 
         length++;
@@ -78,7 +80,7 @@ public class FIFOQueue {
      */
     public FIFOPixel pop() {
         if (length == 0) {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new IndexOutOfBoundsException("The queue is empty");
         }
 
         FIFOPixel fpx = getFirst();
@@ -109,7 +111,7 @@ public class FIFOQueue {
      */
     public FIFOPixel getFirst() {
         if (isEmpty()) {
-            throw new IllegalArgumentException("Queue is empty");
+            throw new IndexOutOfBoundsException("The queue is empty");
         }
         int fpxBits = ((bitfield & LEFTMOST_MASK) >>> LEFTMOST_SHIFT);
         return decode(fpxBits);

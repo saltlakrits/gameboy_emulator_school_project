@@ -16,7 +16,7 @@ public class CuteLogger {
 	try {
 	    fileHandler = new FileHandler("cuteLog.log", 1024 * 1024, 1, true);
 	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, "Could not open log file", e);
+	    LOGGER.log(Level.SEVERE, "Could not open log file:", e);
 	}
 
 	LOGGER.setLevel(Level.ALL);
