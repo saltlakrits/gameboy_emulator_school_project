@@ -6,7 +6,7 @@ package se.liu.natho280.gbemu;
  * @see <a href="https://gbdev.io/pandocs/Interrupt_Sources.html#int-48--stat-interrupt">Pan Docs - STAT se.liu.natho280.GbEmu.Interrupt</a>
  */
 public class StatLine {
-    int line = 0;
+    private int line = 0;
 
     /**
      * Add a low (false) or high (true) signal to the status-line. With a rising edge in the signal, we should

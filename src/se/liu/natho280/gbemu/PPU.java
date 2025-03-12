@@ -39,8 +39,8 @@ public class PPU {
     // ArrayDeque<se.liu.natho280.GbEmu.FIFOPixel> bgFifo = new ArrayDeque<>();
     // ArrayDeque<se.liu.natho280.GbEmu.FIFOPixel> sprFifo = new ArrayDeque<>();
 
-    FIFOQueue bgFifo = new FIFOQueue();
-    FIFOQueue sprFifo = new FIFOQueue();
+    private FIFOQueue bgFifo = new FIFOQueue();
+    private FIFOQueue sprFifo = new FIFOQueue();
 
     public PPU(Display display, Memory memory) {
         this.display = display;

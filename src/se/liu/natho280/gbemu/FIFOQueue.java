@@ -11,7 +11,7 @@ package se.liu.natho280.gbemu;
  * @see PPU#mode3
  */
 public class FIFOQueue {
-    static final int CAPACITY = 8;
+    private static final int CAPACITY = 8;
     private int bitfield = 0;
     private int length = 0;
 
