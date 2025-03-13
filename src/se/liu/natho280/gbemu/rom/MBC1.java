@@ -1,9 +1,11 @@
 package se.liu.natho280.gbemu.rom;
 
+import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.debugger.MBCListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * se.liu.natho280.GbEmu.MBC1, the simplest se.liu.natho280.GbEmu.MBC. See the link for information.
@@ -23,7 +25,7 @@ public class MBC1 implements MBC {
 
     public MBC1(int numberOfBanks) {
         this.numberOfBanks = numberOfBanks;
-        System.out.println("We have " + numberOfBanks + " banks in this rom");
+        CuteLogger.log(Level.INFO, "We have " + numberOfBanks + " banks in this rom");
     }
 
     @Override
