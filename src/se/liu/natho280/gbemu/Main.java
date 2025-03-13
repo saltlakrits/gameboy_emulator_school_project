@@ -47,36 +47,11 @@ public class Main {
         /*
         TODO
 
-        DONE Need to do a full rewrite of the timing. System.nanoTime() only guarantees millisecond accuracy,
-        so it is unreliable. The threaded approach doesn't work, we need to COUNT CYCLES.
-        It isn't that bad to do, but it will require a lot of restructuring and thinking...
+        Bug fixes for Ducktales, Tetris score, Gargoyle's Quest?
 
-        Finish interrupts (at least the bare minimum)
-            -- what i wrote so far has *some* guesswork in it, as the docs were rather ambiguous on some points
-            -- SKIP SERIAL interrupt (this is for link cable, we don't support that anyway)
-        DONE RETI instruction (return from interrupt)
-
-        THERE IS NO CHANCE WE ARE ACTUALLY DONE WITH THE se.liu.natho280.GbEmu.ppu YET, we just got simple backgrounds to work.
-
-        DONE Implement timer?
-
-        Input!
-        -- receive it in UI
-        -- write it
-        -- interrupts
-
-        The se.liu.natho280.GbEmu.Memory/SharedMemory classes are in desperate need of cleanup, they are held together by duct tape & a prayer
-
-        Implement MBCs (mapper, switching between memory banks on the se.liu.natho280.GbEmu.ROM)
-            -- if we start with only one mbc, we might be able to track down roms requiring that specific mbc and play them
+        Finish MBC1, make MBC3, saving
 
         Sound?
-
-        se.liu.natho280.GbEmu.Memory viewer?
-
-        skip boot rom? (i.e. just hardcode the default palette, etc, that the boot rom sets)
-
-        Disassembler...? simple version. This will be tedious as fuck, but not strictly hard, I don't think...
          */
 
         Display display = new Display(); // display is shared between se.liu.natho280.GbEmu.ppu and frontend
@@ -175,7 +150,6 @@ public class Main {
             // LOCK VRAM
 //            memory.lockVram(); // implementing the VRAM lock needs very, very careful attention to timing
             ppu.mode3(ly);
-            //if (ppu.getFlag(1)) ppu.setDots(252); // this flag could have been changed by mode3
             return;
         }
         if (modDots < 455 && !ppu.getFlag(2)) {

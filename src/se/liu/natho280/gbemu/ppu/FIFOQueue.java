@@ -3,11 +3,11 @@ package se.liu.natho280.gbemu.ppu;
 /**
  * Small custom queues for FIFOPixels because the existing ones are a bit slow and clunky.
  * We have the benefit of not having to generalize anything in our implementation, and happily a 32-bit integer is
- * the perfect size for encoding a se.liu.natho280.GbEmu.FIFOPixel as 4 bits. There should be two queues like this; one for sprite pixels,
- * and one for background pixels. They are filled a little differently from each other, but ultimately the se.liu.natho280.GbEmu.PPU
+ * the perfect size for encoding a FIFOPixel as 4 bits. There should be two queues like this; one for sprite pixels,
+ * and one for background pixels. They are filled a little differently from each other, but ultimately the PPU
  * pops one pixel off of each queue, makes a decision between them based on several factors, and pushes one to the
  * LCD.
- * @see <a href=https://gbdev.io/pandocs/pixel_fifo.html>Pan Docs - se.liu.natho280.GbEmu.Pixel FIFO</a>
+ * @see <a href=https://gbdev.io/pandocs/pixel_fifo.html>Pan Docs - Pixel FIFO</a>
  * @see PPU#mode3
  */
 public class FIFOQueue {
@@ -22,9 +22,9 @@ public class FIFOQueue {
     // each element is 4 bits total, for a total of 32 bits which is fantastic
 
     /**
-     * Encodes a se.liu.natho280.GbEmu.FIFOPixel to 4 bits
-     * @param fpx se.liu.natho280.GbEmu.FIFOPixel
-     * @return 4 bits signifying the se.liu.natho280.GbEmu.FIFOPixel
+     * Encodes a FIFOPixel to 4 bits
+     * @param fpx FIFOPixel
+     * @return 4 bits signifying the FIFOPixel
      */
     private int encode(FIFOPixel fpx) {
         return ((fpx.colorValue << 2) |
@@ -33,9 +33,9 @@ public class FIFOQueue {
     }
 
     /**
-     * Decodes 4 bits to a se.liu.natho280.GbEmu.FIFOPixel
+     * Decodes 4 bits to a FIFOPixel
      * @param fpxBits 4 bits
-     * @return a se.liu.natho280.GbEmu.FIFOPixel
+     * @return a FIFOPixel
      */
     private FIFOPixel decode(int fpxBits) {
         return new FIFOPixel(fpxBits >>> 2,
@@ -44,8 +44,8 @@ public class FIFOQueue {
     }
 
     /**
-     * Add a se.liu.natho280.GbEmu.FIFOPixel to the end of the queue.
-     * @param fpx a se.liu.natho280.GbEmu.FIFOPixel
+     * Add a FIFOPixel to the end of the queue.
+     * @param fpx a FIFOPixel
      */
     public void add(FIFOPixel fpx) {
         if (length == CAPACITY) {
@@ -59,7 +59,7 @@ public class FIFOQueue {
 
     /**
      * Add pixel at certain index, replacing what is already there
-     * @param fpx a se.liu.natho280.GbEmu.FIFOPixel
+     * @param fpx a FIFOPixel
      */
     public void addIndex(FIFOPixel fpx, int index) {
         int shiftIndex = (7 - index) * 4;
@@ -68,9 +68,9 @@ public class FIFOQueue {
     }
 
     /**
-     * Get a se.liu.natho280.GbEmu.FIFOPixel at the given index (this is like an array index, not a bit-index).
+     * Get a FIFOPixel at the given index (this is like an array index, not a bit-index).
      * @param index index, 0 == first pixel in the queue
-     * @return a se.liu.natho280.GbEmu.FIFOPixel at the given index
+     * @return a FIFOPixel at the given index
      */
     public FIFOPixel get(int index) {
         int shiftIndex = (7 - index) * 4;
@@ -113,7 +113,7 @@ public class FIFOQueue {
 
     /**
      * Peek at the oldest item in the queue without popping it.
-     * @return the oldest se.liu.natho280.GbEmu.FIFOPixel in the queue.
+     * @return the oldest FIFOPixel in the queue.
      */
     public FIFOPixel getFirst() {
         if (isEmpty()) {
