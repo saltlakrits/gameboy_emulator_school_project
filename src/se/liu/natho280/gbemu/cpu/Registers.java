@@ -27,6 +27,10 @@ public class Registers {
     private final UnsignedShort[] registers = new UnsignedShort[6];
     private final List<RegisterListener> registerListeners = new ArrayList<>();
 
+    private static final int TOP_NIBBLES = 0xFF00;
+    private static final int BOTTOM_NIBBLES = 0xFF;
+    private static final int TWO_BYTES = 0xFFFF;
+
     public Registers() {
         for (int i = 0; i < registers.length; i++) {
             // SP starts at 0xFFFE (end of high ram), rest of the registers are initialized to 0
@@ -69,20 +73,20 @@ public class Registers {
     public void set(Reg reg, int value) {
         // set whole register, or top/bottom 8 bits of one.
         switch (reg) {
-            case A -> registers[0].set(((value & 0xFF) << 8) | (registers[0].get() & 0xFF));
-            case F -> registers[0].set((registers[0].get() & 0xFF00) | (value & 0xFF)); // could be value & 0xF0 since bottom 4 bits should always be 0
-            case AF -> registers[0].set(value & 0xFFFF);
-            case B -> registers[1].set(((value & 0xFF) << 8) | (registers[1].get() & 0xFF));
-            case C -> registers[1].set((registers[1].get() & 0xFF00) | (value & 0xFF));
-            case BC -> registers[1].set(value & 0xFFFF);
-            case D -> registers[2].set(((value & 0xFF) << 8) | (registers[2].get() & 0xFF));
-            case E -> registers[2].set(registers[2].get() & 0xFF00 | (value & 0xFF));
-            case DE -> registers[2].set(value & 0xFFFF);
-            case H -> registers[3].set(((value & 0xFF) << 8) | (registers[3].get() & 0xFF));
-            case L -> registers[3].set((registers[3].get() & 0xFF00) | (value & 0xFF));
-            case HL -> registers[3].set(value & 0xFFFF);
-            case SP -> registers[4].set(value & 0xFFFF);
-            case PC -> registers[5].set(value & 0xFFFF);
+            case A -> registers[0].set(((value & BOTTOM_NIBBLES) << 8) | (registers[0].get() & BOTTOM_NIBBLES));
+            case F -> registers[0].set((registers[0].get() & TOP_NIBBLES) | (value & BOTTOM_NIBBLES)); // could be value & 0xF0 since bottom 4 bits should always be 0
+            case AF -> registers[0].set(value & TWO_BYTES);
+            case B -> registers[1].set(((value & BOTTOM_NIBBLES) << 8) | (registers[1].get() & BOTTOM_NIBBLES));
+            case C -> registers[1].set((registers[1].get() & TOP_NIBBLES) | (value & BOTTOM_NIBBLES));
+            case BC -> registers[1].set(value & TWO_BYTES);
+            case D -> registers[2].set(((value & BOTTOM_NIBBLES) << 8) | (registers[2].get() & BOTTOM_NIBBLES));
+            case E -> registers[2].set(registers[2].get() & TOP_NIBBLES | (value & BOTTOM_NIBBLES));
+            case DE -> registers[2].set(value & TWO_BYTES);
+            case H -> registers[3].set(((value & BOTTOM_NIBBLES) << 8) | (registers[3].get() & BOTTOM_NIBBLES));
+            case L -> registers[3].set((registers[3].get() & TOP_NIBBLES) | (value & BOTTOM_NIBBLES));
+            case HL -> registers[3].set(value & TWO_BYTES);
+            case SP -> registers[4].set(value & TWO_BYTES);
+            case PC -> registers[5].set(value & TWO_BYTES);
         }
 
         for (RegisterListener l : registerListeners) {
@@ -98,21 +102,18 @@ public class Registers {
     public int get(Reg reg) {
         // get whole register, or top/bottom 8 bits of one.
 
-        final int topNibbles = 0xFF00;
-        final int bottomNibbles = 0xFF;
-
         return switch (reg) {
-            case A -> (registers[0].get() & topNibbles) >> 8;
-            case F -> registers[0].get() & bottomNibbles;
+            case A -> (registers[0].get() & TOP_NIBBLES) >> 8;
+            case F -> registers[0].get() & BOTTOM_NIBBLES;
             case AF -> registers[0].get();
-            case B -> (registers[1].get() & topNibbles) >> 8;
-            case C -> registers[1].get() & bottomNibbles;
+            case B -> (registers[1].get() & TOP_NIBBLES) >> 8;
+            case C -> registers[1].get() & BOTTOM_NIBBLES;
             case BC -> registers[1].get();
-            case D -> (registers[2].get() & topNibbles) >> 8;
-            case E -> registers[2].get() & bottomNibbles;
+            case D -> (registers[2].get() & TOP_NIBBLES) >> 8;
+            case E -> registers[2].get() & BOTTOM_NIBBLES;
             case DE -> registers[2].get();
-            case H -> (registers[3].get() & topNibbles) >> 8;
-            case L -> registers[3].get() & bottomNibbles;
+            case H -> (registers[3].get() & TOP_NIBBLES) >> 8;
+            case L -> registers[3].get() & BOTTOM_NIBBLES;
             case HL -> registers[3].get();
             case SP -> registers[4].get();
             case PC -> registers[5].get();
