@@ -134,8 +134,7 @@ public class Main {
         if (ly == 143 && ppu.anyFlag()) {
             // vblank interrupt!
             ppu.vblank();
-        }
-        if (ly > 143) {
+        } else if (ly > 143) {
             return; // vblank
         }
         if (modDots < 80 && !ppu.getFlag(0)) {
