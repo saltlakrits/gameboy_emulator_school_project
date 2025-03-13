@@ -113,6 +113,7 @@ public class ROM {
 
         } catch (IOException e) {
 	    CuteLogger.log(Level.SEVERE, e.getMessage());
+            System.err.println("Failed to load ROM: " + romPath);
             System.exit(-1);
 	}
     }

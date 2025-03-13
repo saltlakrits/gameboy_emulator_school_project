@@ -53,6 +53,13 @@ public class CPU {
         memory.write(0xFF0F, (interruptFlags & ((1 << bit) ^ 0xFF)));
     }
 
+    /**
+     * When an interrupt is called, the program counter is set to an appropriate jump vector.
+     * This matches the bit index in the interrupt flags at 0xFF0F/0xFFFF to the matching address.
+     * @param bit the index of the interrupt flag
+     * @return a jump vector
+     * @see <a href=https://gbdev.io/pandocs/Interrupt_Sources.html>Pan Docs - Interrupt Sources</a>
+     */
     private int matchInterruptAddress(int bit) {
         switch (bit) {
             case 0:
@@ -73,13 +80,17 @@ public class CPU {
         }
     }
 
+    /**
+     * Loops through the possible interrupts and matches one that is both enabled in 0xFFFF
+     * as well as requested in 0xFF0F to an interrupt handler, and sets the program counter
+     * to it after pushing the current value of it to the stack.
+     * @see <a href=https://gbdev.io/pandocs/Interrupts.html>Pan Docs - Interrupts</a>
+     */
     private void checkInterrupts() {
-//        System.out.println("Interrupts enabled: " + interruptsEnabled);
         int interruptEnableFlags = memory.read(0xFFFF);
         int interruptFlags = memory.read(0xFF0F);
 
         if (!interruptsEnabled && !halted) return;
-        // System.out.println("Interrupts enabled: " + interruptEnableFlags + ", requests: " + interruptFlags);
 
         for (int i = 0; i < 5; i++) {
             // check if interrupt is enabled, and then if it is requested
@@ -97,11 +108,6 @@ public class CPU {
                     regs.set(Reg.PC, matchInterruptAddress(i));
                     // unset
                     unsetInterruptFlagBit(i, interruptFlags);
-//                    if (i != 0) {
-//                        System.out.println("CALLING INTERRUPT: 0x" + Integer.toHexString(matchInterruptAddress(i)).toUpperCase());
-//                        System.out.println(memory.read(0xFF44));
-//                        System.out.println(memory.read(0xFF45));
-//                    }
                     cycles += 5;
                 }
 
@@ -134,7 +140,7 @@ public class CPU {
 
     /**
      * If not halted, returns false. If halted, checks if we have waiting, enabled interrupts
-     * (which should un-halt the se.liu.natho280.GbEmu.CPU).
+     * (which should un-halt the CPU).
      * @return
      */
     public boolean getHalted() {
@@ -146,25 +152,24 @@ public class CPU {
     }
 
     /**
-     * <p>The meat of the se.liu.natho280.GbEmu.CPU which runs the fetch-decode-execute cycle. In reality, this runs more than one se.liu.natho280.GbEmu.CPU cycle
-     * very often, and will return how many cycles it ran. This is for timing, and used in se.liu.natho280.GbEmu.Main. It is hard to read and
+     * <p>The meat of the CPU which runs the fetch-decode-execute cycle. In reality, this runs more than one CPU cycle
+     * very often, and will return how many cycles it ran. This is for timing, and used in Main. It is hard to read and
      * interpret what this method is doing, since emulators often boil down to a gigantic switch statement. See
-     * <a href=https://meganesu.github.io/generate-gb-opcodes/>Meganesu Game Boy se.liu.natho280.GbEmu.CPU Instructions</a>
+     * <a href=https://meganesu.github.io/generate-gb-opcodes/>Meganesu Game Boy CPU Instructions</a>
      * for an interactive chart of the instructions, or
-     * see <a href=https://gbdev.io/pandocs/CPU_Instruction_Set.html>Pan Docs - se.liu.natho280.GbEmu.CPU Instruction Set</a> for a
+     * see <a href=https://gbdev.io/pandocs/CPU_Instruction_Set.html>Pan Docs - CPU Instruction Set</a> for a
      * different breakdown.</p>
      *
      * <p>Some of the longer and/or reusable instructions have been broken out
      * into separate methods below. There is also a second chart of 256 16-bit instructions that was broken out into
      * another method, ({@link #bigInstruction}).</p>
-     * @param bos BufferedOutputStream; will perhaps be removed
      * @return cycles it took to finish an instruction
      */
     public int runCycle() {
         if (haltBugCounter == 1) regs.addPC(-1);
 
         // Check & handle interrupts -- I think this should work?
-        checkInterrupts(); // FIXME maybe this should be off for doctor????
+        checkInterrupts();
         if (halted) return 0;
 
         int instruction = memory.read(regs.get(Reg.PC));
@@ -199,8 +204,6 @@ public class CPU {
         } else {
             sourceRegValue = regs.get(sourceReg);
         }
-
-        // if (regs.get(se.liu.natho280.GbEmu.Reg.PC) == 0x48) System.out.println("WOOOOOOOOOOOOOOOOOOOOO");
 
         switch (firstNibble) {
             case 0x0:
@@ -292,7 +295,7 @@ public class CPU {
                     case 0x0:
                         regs.addPC(1);
                         if (d8 == 0x00) {
-                            // TODO!!!!!!!!!!!
+                            // TODO!
                             // If the RESET terminal goes LOW in STOP mode, it becomes that of a normal reset status.
                             // The following conditions should be met before a STOP instruction is executed and stop mode is entered:
                             // All interrupt-enable (IE) flags are reset.
@@ -1236,54 +1239,36 @@ public class CPU {
     }
 
     /**
-     * se.liu.natho280.GbEmu.Memory addresses 0x0, 0x08, 0x10, 0x18, ..., 0x38 are jump vectors. This method simply jumps according to the
+     * Memory addresses 0x0, 0x08, 0x10, 0x18, ..., 0x38 are jump vectors. This method simply jumps according to the
      * instruction to one of these vectors.
      * @param instruction
      */
     private void callVec(int instruction) {
         pushPC();
+
+        int instructionFirstNibble = (instruction & 0xF0) >> 4;
+        boolean secondNibbleIsSeven = (instruction & 0x0F) == 0x7;
         int vec;
-        if ((instruction & 0x0F) == 0x7) {
-            // something if 0x7
-            switch ((instruction & 0xF0) >> 4) {
-                case 0xC:
-                    vec = 0x00;
-                    break;
-                case 0xD:
-                    vec = 0x10;
-                    break;
-                case 0xE:
-                    vec = 0x20;
-                    break;
-                case 0xF:
-                    vec = 0x30;
-                    break;
-                default:
-                    CuteLogger.log(Level.SEVERE, "Somehow reached default switch case in callVec?");
-                    vec = 0xFF; // doesn't matter, we're crashing
-                    System.exit(-1);
-            }
-        } else {
-            // it's 0xF
-            switch ((instruction & 0xF0) >> 4) {
-                case 0xC:
-                    vec = 0x08;
-                    break;
-                case 0xD:
-                    vec = 0x18;
-                    break;
-                case 0xE:
-                    vec = 0x28;
-                    break;
-                case 0xF:
-                    vec = 0x38;
-                    break;
-                default:
-                    CuteLogger.log(Level.SEVERE, "Somehow reached default switch case in callVec?");
-                    vec = 0xFF; // doesn't matter, we're crashing
-                    System.exit(-1);
-            }
+
+        switch (instructionFirstNibble) {
+            case 0xC:
+                vec = (secondNibbleIsSeven ? 0x00 : 0x08);
+                break;
+            case 0xD:
+                vec = (secondNibbleIsSeven ? 0x10 : 0x18);
+                break;
+            case 0xE:
+                vec = (secondNibbleIsSeven ? 0x20 : 0x28);
+                break;
+            case 0xF:
+                vec = (secondNibbleIsSeven ? 0x30 : 0x38);
+                break;
+            default:
+                CuteLogger.log(Level.SEVERE, "Somehow reached default switch case in callVec?");
+                vec = 0xFF; // doesn't matter, we're crashing
+                System.exit(-1);
         }
+
         regs.set(Reg.PC, vec);
         cycles += 3;
     }
@@ -1602,8 +1587,6 @@ public class CPU {
      * @see <a href=https://gbdev.io/pandocs/Timer_and_Divider_Registers.html>Pan Docs - Timer and Divider se.liu.natho280.GbEmu.Registers</a>
      */
     public void updateTimers(int cycles) {
-        // TODO Maybe runCycle could call this function on it's own?
-        // TODO Timers seem broken, see mario land timer
 
         // FF04 incs by 16384 every SECOND
         // divide that by dots
