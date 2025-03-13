@@ -81,7 +81,7 @@ public class MemoryViewer implements MBCListener
 
     public void postStepUpdate() {
         this.shouldStep = false;
-        if (bankSwitched) this.disassemblyTable.redisassembleBankSwitch();
+        if (bankSwitched) this.disassemblyTable.reDisassembleBankSwitch();
         disassemblyTable.highlightRow(registerTable.getPC());
     }
 

@@ -39,7 +39,7 @@ public class ROM {
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
                 System.exit(-1);
-        };
+        }
 
         // pick RAM size
         switch(rom[0x149].get()) {
@@ -62,7 +62,7 @@ public class ROM {
                 this.ram = null; // doesn't matter, exiting
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x149].get());
                 System.exit(-1);
-        };
+        }
     }
 
     /**

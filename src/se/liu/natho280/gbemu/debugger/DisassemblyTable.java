@@ -51,7 +51,7 @@ public class DisassemblyTable {
      * If the memory bank switched while stepping or emulator was unpaused, we drop the entire table
      * and remake it.
      */
-    public void redisassembleBankSwitch() {
+    public void reDisassembleBankSwitch() {
         // listener to se.liu.natho280.GbEmu.MBC, re-disassembles memory bank and replaces
         // disassemblyTableModel.fireTableDataChanged(); // what the fuck?
 
@@ -464,8 +464,6 @@ public class DisassemblyTable {
                     case 0xF:
                         newRow[1] = "RST 1";
                         break;
-                    default:
-                        newRow[1] = "UNDEFINED OPCODE";
                 }
                 break;
             case 0xD:
@@ -614,7 +612,7 @@ public class DisassemblyTable {
                         newRow[1] = "UNDEFINED OPCODE";
                 }
                 break;
-        };
+        }
         return programCounter;
     }
 

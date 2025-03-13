@@ -52,7 +52,7 @@ public class Memory {
     }
 
     public void resetDivTimer() {
-        divTimer = 0.;
+        divTimer = 0.0;
         flooredDivTimer = 0;
     }
 
@@ -81,7 +81,7 @@ public class Memory {
             case 3:
                 mod = 64;
                 break;
-        };
+        }
 
         timaCycles += cycles;
         if (timaCycles >= mod) {

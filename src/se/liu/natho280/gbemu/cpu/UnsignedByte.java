@@ -16,20 +16,4 @@ public class UnsignedByte extends Unsigned {
     protected int clamp(int value) {
         return (value & 0xFF);
     }
-
-
-    public static void main(String[] args) {
-        // testing
-        UnsignedByte testUB = new UnsignedByte(255);
-        System.out.println(testUB.get());
-
-        testUB.set(testUB.get() + 1);
-        System.out.println(testUB.get()); // value is now 0
-        testUB.set(testUB.get() - 1);
-        System.out.println(testUB.get()); // value is now 0
-
-        testUB.set(0);
-        testUB.set(testUB.get() - 100); // 156
-        System.out.println(testUB.get());
-    }
 }

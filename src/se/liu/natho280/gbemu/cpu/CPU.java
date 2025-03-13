@@ -175,7 +175,7 @@ public class CPU {
         // have instruction, increased PC, now to decode instruction
 
         // fetch carry flag
-        final int cyFlag = regs.getCarryFlag();
+        final int carryFlag = regs.getCarryFlag();
 
         int firstNibble = (instruction & 0xF0) >> 4;
         int secondNibble = (instruction & 0x0F);
@@ -252,7 +252,7 @@ public class CPU {
                         break;
                     case 0x9:
                         // cycles: 2, ADD HL, BC
-                        addHLR16(Reg.BC);
+                        addHLr16(Reg.BC);
                         break;
                     case 0xA:
                         // cycles: 2, LD A, (BC)
@@ -334,7 +334,7 @@ public class CPU {
                         regs.setSubtractionFlag(false);
                         regs.setHalfcarryFlag(false);
                         regs.setCarryFlag((regs.get(Reg.A) & 0x80) >> 7 == 1);
-                        regs.set(Reg.A, regs.get(Reg.A) << 1 | cyFlag);
+                        regs.set(Reg.A, regs.get(Reg.A) << 1 | carryFlag);
                         break;
                     case 0x8:
                         // cycles: 3/2, JR s8
@@ -342,7 +342,7 @@ public class CPU {
                         break;
                     case 0x9:
                         // cycles: 2, ADD HL, DE
-                        addHLR16(Reg.DE);
+                        addHLr16(Reg.DE);
                         break;
                     case 0xA:
                         // cycles: 2, LD A, (DE)
@@ -374,7 +374,7 @@ public class CPU {
                         regs.setZeroFlag(false);
                         regs.setSubtractionFlag(false);
                         regs.setHalfcarryFlag(false);
-                        regs.set(Reg.A, regs.get(Reg.A) >> 1 | (cyFlag << 7));
+                        regs.set(Reg.A, regs.get(Reg.A) >> 1 | (carryFlag << 7));
                         break;
                 }
                 break;
@@ -421,7 +421,7 @@ public class CPU {
                         break;
                     case 0x9:
                         // cycles: 2, ADD HL, HL
-                        addHLR16(Reg.HL);
+                        addHLr16(Reg.HL);
                         break;
                     case 0xA:
                         // cycles: 2, LD A, (HL+)
@@ -483,7 +483,7 @@ public class CPU {
                         break;
                     case 0x6:
                         // cycles: 3, LD (HL), d8
-                        writeHLPtr(d8);
+                        writeHLptr(d8);
                         regs.addPC(1);
                         cycles += 2;
                         break;
@@ -499,7 +499,7 @@ public class CPU {
                         break;
                     case 0x9:
                         // cycles: 2, ADD HL, SP
-                        addHLR16(Reg.SP);
+                        addHLr16(Reg.SP);
                         break;
                     case 0xA:
                         // cycles: 2, LD A, (HL-)
@@ -583,9 +583,9 @@ public class CPU {
                     regs.setZeroFlag(regs.get(Reg.A) == 0);
                 } else {
                     // cycles: 1, ADC to A instruction
-                    regs.setHalfcarryFlag(((regs.get(Reg.A) & 0xF) + ((sourceRegValue & 0xF) + cyFlag) > 0xF));
-                    regs.setCarryFlag(regs.get(Reg.A) + (sourceRegValue + cyFlag) > 0xFF);
-                    regs.set(Reg.A, regs.get(Reg.A) + (sourceRegValue + cyFlag));
+                    regs.setHalfcarryFlag(((regs.get(Reg.A) & 0xF) + ((sourceRegValue & 0xF) + carryFlag) > 0xF));
+                    regs.setCarryFlag(regs.get(Reg.A) + (sourceRegValue + carryFlag) > 0xFF);
+                    regs.set(Reg.A, regs.get(Reg.A) + (sourceRegValue + carryFlag));
                     regs.setZeroFlag(regs.get(Reg.A) == 0);
                 }
                 break;
@@ -602,9 +602,9 @@ public class CPU {
                     regs.set(Reg.A, regs.get(Reg.A) - sourceRegValue);
                 } else {
                     // SBC (sub with carry) sourceRegValue from A
-                    regs.setHalfcarryFlag(((regs.get(Reg.A) & 0xF) < ((sourceRegValue & 0xF) + cyFlag)));
-                    regs.setCarryFlag(regs.get(Reg.A) < (sourceRegValue + cyFlag));
-                    regs.set(Reg.A, regs.get(Reg.A) - (sourceRegValue + cyFlag));
+                    regs.setHalfcarryFlag(((regs.get(Reg.A) & 0xF) < ((sourceRegValue & 0xF) + carryFlag)));
+                    regs.setCarryFlag(regs.get(Reg.A) < (sourceRegValue + carryFlag));
+                    regs.set(Reg.A, regs.get(Reg.A) - (sourceRegValue + carryFlag));
                     regs.setZeroFlag(regs.get(Reg.A) == 0);
                 }
                 break;
@@ -711,9 +711,9 @@ public class CPU {
                         // cycles: 2, ADC A, d8
                         regs.addPC(1);
                         regs.setSubtractionFlag(false);
-                        regs.setHalfcarryFlag(((regs.get(Reg.A) & 0xF) + (d8 & 0xF) + cyFlag) > 0xF);
-                        regs.setCarryFlag(((regs.get(Reg.A) & 0xFF) + ((d8) & 0xFF) + cyFlag) > 0xFF);
-                        regs.set(Reg.A, regs.get(Reg.A) + (d8 + cyFlag));
+                        regs.setHalfcarryFlag(((regs.get(Reg.A) & 0xF) + (d8 & 0xF) + carryFlag) > 0xF);
+                        regs.setCarryFlag(((regs.get(Reg.A) & 0xFF) + ((d8) & 0xFF) + carryFlag) > 0xFF);
+                        regs.set(Reg.A, regs.get(Reg.A) + (d8 + carryFlag));
                         regs.setZeroFlag(regs.get(Reg.A) == 0);
                         cycles++;
                         break;
@@ -786,9 +786,9 @@ public class CPU {
                         // cycles: 2, SBC A, d8
                         regs.addPC(1);
                         regs.setSubtractionFlag(true);
-                        regs.setHalfcarryFlag(((regs.get(Reg.A) & 0xF) < ((d8 & 0xF) + cyFlag)));
-                        regs.setCarryFlag(regs.get(Reg.A) < (d8 + cyFlag));
-                        regs.set(Reg.A, regs.get(Reg.A) - (d8 + cyFlag));
+                        regs.setHalfcarryFlag(((regs.get(Reg.A) & 0xF) < ((d8 & 0xF) + carryFlag)));
+                        regs.setCarryFlag(regs.get(Reg.A) < (d8 + carryFlag));
+                        regs.set(Reg.A, regs.get(Reg.A) - (d8 + carryFlag));
                         regs.setZeroFlag(regs.get(Reg.A) == 0);
                         cycles++;
                         break;
@@ -802,7 +802,7 @@ public class CPU {
                 switch (secondNibble) {
                     case 0x0:
                         // cycles: 2, LD (a8), A
-                        ldRamd8(firstNibble, d8);
+                        ldRamD8(firstNibble, d8);
                         break;
                     case 0x1:
                         popR16(firstNibble);
@@ -847,7 +847,7 @@ public class CPU {
                         break;
                     case 0xA:
                         // cycles: 3, LD (a16), A
-                        ldRamd16(firstNibble, d16);
+                        ldRamD16(firstNibble, d16);
                         break;
                     case 0xE:
                         // cycles: 2, XOR A, d8
@@ -869,7 +869,7 @@ public class CPU {
                 switch (secondNibble) {
                     case 0x0:
                         // cycles: 2, LD A, (d8)
-                        ldRamd8(firstNibble, d8);
+                        ldRamD8(firstNibble, d8);
                         break;
                     case 0x1:
                         // cycles: 3, POP AF
@@ -923,7 +923,7 @@ public class CPU {
                         break;
                     case 0xA:
                         // cycles: 3, LD A, (a16)
-                        ldRamd16(firstNibble, d16);
+                        ldRamD16(firstNibble, d16);
                         break;
                     case 0xB:
                         // cycles: 1, EI (set IME, enable interrupts)
@@ -956,7 +956,7 @@ public class CPU {
      * Many instructions use HL as a pointer to a memory address, and this is just for ergonomics.
      * @return the value from memory
      */
-    private int readHLPtr() {
+    private int readHLptr() {
         return memory.read(regs.get(Reg.HL));
     }
 
@@ -964,7 +964,7 @@ public class CPU {
      * Many instructions use HL as a pointer to a memory address, and this is just for ergonomics.
      * @param value value to write
      */
-    private void writeHLPtr(int value) {
+    private void writeHLptr(int value) {
         memory.write(regs.get(Reg.HL), value);
     }
 
@@ -974,7 +974,7 @@ public class CPU {
      */
     private void incR8(Reg reg) {
         // cycles: 1, INC r8
-        int value = (reg == Reg.HL ? readHLPtr() : regs.get(reg));
+        int value = (reg == Reg.HL ? readHLptr() : regs.get(reg));
 
         regs.setZeroFlag(((value + 1) & 0xFF) == 0);
         regs.setSubtractionFlag(false);
@@ -983,7 +983,7 @@ public class CPU {
         if (reg != Reg.HL) {
             regs.set(reg, value + 1);
         } else {
-            writeHLPtr(value + 1);
+            writeHLptr(value + 1);
             cycles += 2;
         }
     }
@@ -994,7 +994,7 @@ public class CPU {
      */
     private void decR8(Reg reg) {
         // cycles: 1, DEC r8
-        int value = (reg == Reg.HL ? readHLPtr() : regs.get(reg));
+        int value = (reg == Reg.HL ? readHLptr() : regs.get(reg));
         regs.setZeroFlag(((value - 1) & 0xFF) == 0);
         regs.setSubtractionFlag(true);
         regs.setHalfcarryFlag((value & 0xF) < 1);
@@ -1002,7 +1002,7 @@ public class CPU {
         if (reg != Reg.HL) {
             regs.set(reg, value - 1);
         } else {
-            writeHLPtr(value - 1);
+            writeHLptr(value - 1);
         }
     }
 
@@ -1010,7 +1010,7 @@ public class CPU {
      * Adds the given register to the HL, and stores the result in HL.
      * @param reg
      */
-    private void addHLR16(Reg reg) {
+    private void addHLr16(Reg reg) {
         // cycles: 2, ADD HL, BC
         regs.setSubtractionFlag(false);
         regs.setHalfcarryFlag(((regs.get(Reg.HL) & 0xFFF) + (regs.get(reg) & 0xFFF)) > 0xFFF);
@@ -1298,7 +1298,7 @@ public class CPU {
      * @param firstNibble
      * @param d8
      */
-    private void ldRamd8(int firstNibble, int d8) {
+    private void ldRamD8(int firstNibble, int d8) {
         int address = 0xFF00 | d8;
         regs.addPC(1);
         if (firstNibble == 0xE) {
@@ -1312,7 +1312,7 @@ public class CPU {
     }
 
     /**
-     * This is very similar to {@link #ldRamd8}, but instead of using an immediate 8-bit number, uses the number in
+     * This is very similar to {@link #ldRamD8}, but instead of using an immediate 8-bit number, uses the number in
      * register C.
      * @param firstNibble
      */
@@ -1331,7 +1331,7 @@ public class CPU {
      * @param firstNibble
      * @param d16 immediate 16-bit address
      */
-    private void ldRamd16(int firstNibble, int d16) {
+    private void ldRamD16(int firstNibble, int d16) {
         regs.addPC(2);
         if (firstNibble == 0xE) {
             memory.write(d16, regs.get(Reg.A));
@@ -1355,7 +1355,7 @@ public class CPU {
         cycles++;
         regs.addPC(1);
 
-        final int cyFlag = regs.getCarryFlag();
+        final int carryFlag = regs.getCarryFlag();
 
         Reg sourceReg = Registers.getSourceRegByNibble(secondNibble);
         int sourceRegValue;
@@ -1403,23 +1403,23 @@ public class CPU {
                 if (secondNibble <= 0x7 && secondNibble != 0x6) {
                     // cycles: 2, RL r8
                     regs.setCarryFlag((sourceRegValue & (1 << 7)) != 0);
-                    regs.set(sourceReg, (sourceRegValue << 1) | cyFlag);
+                    regs.set(sourceReg, (sourceRegValue << 1) | carryFlag);
                     regs.setZeroFlag(regs.get(sourceReg) == 0x0);
                 } else if (secondNibble == 0x6) {
                     // cycles: 4, RL (HL)
                     regs.setCarryFlag((sourceRegValue & (1 << 7)) != 0);
-                    memory.write(regs.get(sourceReg), (sourceRegValue << 1) | cyFlag);
+                    memory.write(regs.get(sourceReg), (sourceRegValue << 1) | carryFlag);
                     regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
                     cycles += 2;
                 } else if (secondNibble != 0xE) {
                     // cycles: 2, RR r8
                     regs.setCarryFlag((sourceRegValue & (1)) != 0);
-                    regs.set(sourceReg, (sourceRegValue >> 1) | (cyFlag << 7));
+                    regs.set(sourceReg, (sourceRegValue >> 1) | (carryFlag << 7));
                     regs.setZeroFlag(regs.get(sourceReg) == 0x0);
                 } else {
                     // cycles: 4, RR (HL)
                     regs.setCarryFlag((sourceRegValue & (1)) != 0);
-                    memory.write(regs.get(sourceReg), (sourceRegValue >> 1) | (cyFlag << 7));
+                    memory.write(regs.get(sourceReg), (sourceRegValue >> 1) | (carryFlag << 7));
                     regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
                     cycles += 2;
                 }
