@@ -27,7 +27,9 @@ public class FIFOQueue {
      * @return 4 bits signifying the se.liu.natho280.GbEmu.FIFOPixel
      */
     private int encode(FIFOPixel fpx) {
-        return ((fpx.colorValue << 2) | ((fpx.palette ? 1 : 0) << 1) | (fpx.bgPrio ? 1 : 0));
+        return ((fpx.colorValue << 2) |
+                ((fpx.palette ? 1 : 0) << 1) |
+                (fpx.bgPrio ? 1 : 0));
     }
 
     /**
@@ -36,7 +38,9 @@ public class FIFOQueue {
      * @return a se.liu.natho280.GbEmu.FIFOPixel
      */
     private FIFOPixel decode(int fpxBits) {
-        return new FIFOPixel(fpxBits >>> 2, (fpxBits & 0x2) != 0, (fpxBits & 0x1) != 0);
+        return new FIFOPixel(fpxBits >>> 2,
+                             (fpxBits & 0x2) != 0,
+                             (fpxBits & 0x1) != 0);
     }
 
     /**
@@ -49,7 +53,8 @@ public class FIFOQueue {
         }
 
         length++;
-        bitfield |= (encode(fpx) << ((7 - (length - 1)) * 4));
+        int shift = ((7 - (length - 1)) * 4);
+        bitfield |= (encode(fpx) << shift);
     }
 
     /**
@@ -57,9 +62,9 @@ public class FIFOQueue {
      * @param fpx a se.liu.natho280.GbEmu.FIFOPixel
      */
     public void addIndex(FIFOPixel fpx, int index) {
-//        bitfield &= (0xF << (index * 4));
-        bitfield &= (bitfield ^ (0xF << ((7 - index) * 4)));
-        bitfield |= (encode(fpx) << ((7 - index) * 4));
+        int shiftIndex = (7 - index) * 4;
+        bitfield &= (bitfield ^ (0xF << shiftIndex));
+        bitfield |= (encode(fpx) << shiftIndex);
     }
 
     /**
@@ -68,7 +73,8 @@ public class FIFOQueue {
      * @return a se.liu.natho280.GbEmu.FIFOPixel at the given index
      */
     public FIFOPixel get(int index) {
-        return decode((bitfield >> ((7 - index) * 4)) & 0xF);
+        int shiftIndex = (7 - index) * 4;
+        return decode((bitfield >> shiftIndex) & 0xF);
     }
 
     /**
@@ -82,6 +88,8 @@ public class FIFOQueue {
         }
 
         FIFOPixel fpx = getFirst();
+
+        // Shift a nibble out, dec length
         bitfield <<= 4;
         length--;
 
