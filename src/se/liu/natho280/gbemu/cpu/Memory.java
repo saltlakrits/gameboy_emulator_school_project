@@ -42,9 +42,8 @@ public class Memory {
     public Memory(String romPath) {
         // create (& probably load) se.liu.natho280.GbEmu.ROM with romPath string
         this.rom = new ROM(romPath);
-        // initialize big array, skipping over the se.liu.natho280.GbEmu.ROM portion
         // FIXME some of these addresses may not be "real" memory, but just "magical addresses" that show e.g.
-        //  status of hardware and similar (just like how some of the memory just point to the se.liu.natho280.GbEmu.ROM in the cartridge!).
+        //  status of hardware and similar (just like how some of the memory just point to the ROM in the cartridge!).
         //  As such, this may need to change!
         for (int i = 0; i < memory.length; i++) {
             memory[i] = new UnsignedByte(0);
@@ -185,6 +184,10 @@ public class Memory {
      */
     public void unconditionalWrite(int address, int value) {
         memory[address] = new UnsignedByte(value);
+
+        for (MemoryListener memoryListener : memoryListeners) {
+            memoryListener.memoryChanged(address);
+        }
     }
 
     public OAM[] getOAMs() {
@@ -273,5 +276,27 @@ public class Memory {
 
     public void addMBCListener(MBCListener l) {
         rom.getMBC().addMBCListener(l);
+    }
+
+    public void reInitializeMemory(String newROM) {
+        // zero out the memory
+        for (int i = 0; i < 0x10000; i++) {
+            unconditionalWrite(i, 0);
+        }
+
+        resetDivTimer();
+        tima = 0;
+        timaCycles = 0;
+
+        // drop ROM, reinit
+        List<MBCListener> oldMBCListeners = rom.getMBC().getListeners();
+
+        this.rom = new ROM(newROM);
+
+        if (oldMBCListeners != null) {
+            for (MBCListener l : oldMBCListeners) {
+                this.rom.getMBC().addMBCListener(l);
+            }
+        }
     }
 }

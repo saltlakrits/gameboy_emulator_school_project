@@ -2,6 +2,8 @@ package se.liu.natho280.gbemu.rom;
 
 import se.liu.natho280.gbemu.debugger.MBCListener;
 
+import java.util.List;
+
 /**
  * se.liu.natho280.GbEmu.Memory Bank Controllers, MBCs, are what allows Game Boy cartridges to contain more than 32 KiB, and/or have RAM in
  * the cart. It achieves this by letting the program choose a memory bank of the cartridge by writing to registers
@@ -13,4 +15,5 @@ public interface MBC {
     public void write(int address, int value);
     public int redirectedAddress(int address);
     public void addMBCListener(MBCListener l);
+    public List<MBCListener> getListeners();
 }

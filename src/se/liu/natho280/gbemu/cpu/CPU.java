@@ -32,6 +32,19 @@ public class CPU {
         this.regs = regs;
     }
 
+    /**
+     * When loading a different ROM, we need to reset the CPU
+     * to the initial state.
+     */
+    public void reInitializeCPU() {
+        this.regs.initRegisters();
+        this.interruptsEnabled = false;
+        this.halted = false;
+        this.haltBugCounter = 0;
+        this.cycles = 0;
+        setUpBoot();
+    }
+
     public void pushPC() {
         // push PC to stack
         regs.decSP();

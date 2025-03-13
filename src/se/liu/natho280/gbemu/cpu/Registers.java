@@ -32,6 +32,10 @@ public class Registers {
     private static final int TWO_BYTES = 0xFFFF;
 
     public Registers() {
+        initRegisters();
+    }
+
+    public void initRegisters() {
         for (int i = 0; i < registers.length; i++) {
             // SP starts at 0xFFFE (end of high ram), rest of the registers are initialized to 0
             registers[i] = new UnsignedShort((i == 4 ? 0xFFFE : 0));

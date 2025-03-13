@@ -76,4 +76,9 @@ public class MBC1 implements MBC {
     public void addMBCListener(MBCListener l) {
         this.mbcListeners.add(l);
     }
+
+    @Override
+    public List<MBCListener> getListeners() {
+        return new ArrayList<>(this.mbcListeners);
+    }
 }

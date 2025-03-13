@@ -51,7 +51,7 @@ public class DisassemblyTable {
      * If the memory bank switched while stepping or emulator was unpaused, we drop the entire table
      * and remake it.
      */
-    public void reDisassembleBankSwitch() {
+    public void redisassembleROM() {
         // listener to se.liu.natho280.GbEmu.MBC, re-disassembles memory bank and replaces
         // disassemblyTableModel.fireTableDataChanged(); // what the fuck?
 

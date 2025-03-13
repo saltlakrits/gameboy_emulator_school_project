@@ -1,5 +1,6 @@
 package se.liu.natho280.gbemu.gui;
 
+import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.GameButton;
 import se.liu.natho280.gbemu.cpu.Memory;
 import se.liu.natho280.gbemu.debugger.MemoryViewer;
@@ -8,6 +9,8 @@ import se.liu.natho280.gbemu.ppu.Display;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 /**
  * The frontend window that displays the emulator screen and receives the input from the user.
@@ -15,15 +18,29 @@ import java.awt.event.ActionEvent;
 public class EmuViewer {
     // Frontend for the emulator
 
+    private CPU cpu;
     private Memory memory;
     private Display display;
     private final JFrame frame = new JFrame("gbEmu");
+    private final JPopupMenu popupMenu = new JPopupMenu();
     private final MemoryViewer memoryViewer;
 
-    public EmuViewer(Memory memory, Display display, MemoryViewer memoryViewer) {
+    public EmuViewer(CPU cpu, Memory memory, Display display, MemoryViewer memoryViewer) {
+        this.cpu = cpu;
         this.memory = memory;
         this.display = display;
         this.memoryViewer = memoryViewer;
+    }
+
+    /**
+     * When we change the ROM through the UI, we need to reinitialize
+     * the CPU and Memory. The PPU shouldn't care that we do so.
+     * @param newROM path to new ROM file
+     */
+    private void changeROM(String newROM) {
+        this.memory.reInitializeMemory(newROM); // reinitialize memory (zero it out), inside it reInit ROM as well?
+        this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
+        this.memoryViewer.redisassemble();
     }
 
     public void show() {
@@ -35,6 +52,8 @@ public class EmuViewer {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+
+        makePopupMenu();
 
         JComponent pane = frame.getRootPane();
         final InputMap in = pane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -81,6 +100,39 @@ public class EmuViewer {
         act.put("b_button_up", new ReleaseAction(GameButton.B));
         act.put("start_button_up", new ReleaseAction(GameButton.START));
         act.put("select_button_up", new ReleaseAction(GameButton.SELECT));
+    }
+
+    private void makePopupMenu() {
+        JMenuItem openROM = new JMenuItem("Load ROM");
+
+        frame.addMouseListener(new MouseListener() {
+
+            @Override public void mousePressed(final MouseEvent e) {
+                if (e.getButton() != MouseEvent.BUTTON3) return;
+
+                popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+
+            // rest are of no importance
+            @Override public void mouseClicked(final MouseEvent e) {}
+            @Override public void mouseReleased(final MouseEvent e) {}
+            @Override public void mouseEntered(final MouseEvent e) {}
+            @Override public void mouseExited(final MouseEvent e) {}
+        });
+
+        openROM.addActionListener(new LoadROMAction());
+        popupMenu.add(openROM);
+    }
+
+    private class LoadROMAction extends AbstractAction {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+	    FileDialog fd = new FileDialog(frame, "Load ROM", FileDialog.LOAD);
+            fd.setVisible(true);
+            String newROMPath = fd.getDirectory() + fd.getFile();
+
+            changeROM(newROMPath);
+	}
     }
 
     private class PressAction extends AbstractAction {

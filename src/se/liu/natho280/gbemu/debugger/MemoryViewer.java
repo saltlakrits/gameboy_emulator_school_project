@@ -36,6 +36,10 @@ public class MemoryViewer implements MBCListener
         frame.setVisible(showDebugger);
     }
 
+    public void redisassemble() {
+        this.disassemblyTable.redisassembleROM();
+    }
+
     public void create() {
 //        memoryTableScrollPane.setViewportView(memoryTableScrollPane);
 //        frame.setResizable(false);
@@ -78,7 +82,7 @@ public class MemoryViewer implements MBCListener
 
     public void postStepUpdate() {
         this.shouldStep = false;
-        if (bankSwitched) this.disassemblyTable.reDisassembleBankSwitch();
+        if (bankSwitched) this.disassemblyTable.redisassembleROM();
         disassemblyTable.highlightRow(registerTable.getPC());
     }
 
