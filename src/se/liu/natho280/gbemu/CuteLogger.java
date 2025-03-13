@@ -6,6 +6,9 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 
+/**
+ * Static object for logging.
+ */
 public class CuteLogger {
 
     private static final Logger LOGGER = Logger.getLogger("se.liu.natho280.gbemu");

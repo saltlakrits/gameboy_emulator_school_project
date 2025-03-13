@@ -7,9 +7,12 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
+/**
+ * Handles the register portion of the debugging GUI. Updates the values by listening
+ * on the register writes.
+ */
 public class RegisterTable implements RegisterListener {
     private Registers registers;
-    private JTable registerTable;
     private DefaultTableModel registerTableModel;
     private JScrollPane registerScrollPane;
 
@@ -21,7 +24,6 @@ public class RegisterTable implements RegisterListener {
     }
 
     private void makeScrollPane() {
-        // make it!
 
         String[] columnNames = {"Register", "Value"};
         this.registerTableModel = new DefaultTableModel(columnNames, 0) {
@@ -46,9 +48,9 @@ public class RegisterTable implements RegisterListener {
             this.registerTableModel.addRow(newRow);
         }
 
-        this.registerTable = new JTable(this.registerTableModel);
-        this.registerTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        this.registerScrollPane = new JScrollPane(this.registerTable);
+	JTable registerTable = new JTable(this.registerTableModel);
+        registerTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        this.registerScrollPane = new JScrollPane(registerTable);
     }
 
     public JScrollPane getRegisterScrollPane() {

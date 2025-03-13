@@ -6,8 +6,18 @@ package se.liu.natho280.gbemu.ppu;
  * a lot of information discarded.
  */
 public class FIFOPixel {
+    /**
+     * The color value of the FIFOPixel.
+     */
     public int colorValue;
+    /**
+     * The corresponding (of two possible) palettes.
+     */
     public boolean palette;
+    /**
+     * Whether background color values > 0 has priority over this pixel when drawing on the
+     * screen.
+     */
     public boolean bgPrio;
 
     public FIFOPixel(int colorValue, boolean palette, boolean bgPrio) {

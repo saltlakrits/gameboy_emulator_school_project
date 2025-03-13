@@ -7,6 +7,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * Handles drawing the display in the GUI. The Game Boy only has four colors, and as such
+ * a lot is left up to us when deciding how to present it. Listens to the Display class for
+ * finished screen draws.
+ */
 public class DisplayComponent extends JComponent implements DisplayListener {
     private static final int RESIZE_FACTOR = 4;
     private Display display;
