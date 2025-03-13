@@ -38,9 +38,11 @@ public class EmuViewer {
      * @param newROM path to new ROM file
      */
     private void changeROM(String newROM) {
+        memoryViewer.setEmulatorPaused(true); // pause emulator while reinitializing it
         this.memory.reInitializeMemory(newROM); // reinitialize memory (zero it out), inside it reInit ROM as well?
         this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
         this.memoryViewer.redisassemble();
+        memoryViewer.setEmulatorPaused(false); // done reinitializing -> unpause
     }
 
     public void show() {

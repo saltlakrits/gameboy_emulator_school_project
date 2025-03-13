@@ -1,7 +1,7 @@
 package se.liu.natho280.gbemu.cpu;
 
 /**
- * se.liu.natho280.GbEmu.Unsigned 16-bit numbers.
+ * Unsigned 16-bit numbers.
  * @see Unsigned
  */
 public class UnsignedShort extends Unsigned {

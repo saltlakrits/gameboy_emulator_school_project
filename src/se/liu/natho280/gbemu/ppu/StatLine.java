@@ -3,7 +3,7 @@ package se.liu.natho280.gbemu.ppu;
 /**
  * This probably looks a little nonsensical. Easiest to follow the link and read about it! This is a simple
  * implementation of the "signal" they mention. Should return true on a rising edge.
- * @see <a href="https://gbdev.io/pandocs/Interrupt_Sources.html#int-48--stat-interrupt">Pan Docs - STAT se.liu.natho280.GbEmu.Interrupt</a>
+ * @see <a href="https://gbdev.io/pandocs/Interrupt_Sources.html#int-48--stat-interrupt">Pan Docs - STAT Interrupt</a>
  */
 public class StatLine {
     private int line = 0;

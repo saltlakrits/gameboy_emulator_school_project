@@ -1,7 +1,7 @@
 package se.liu.natho280.gbemu.cpu;
 
 /**
- * se.liu.natho280.GbEmu.Unsigned 8-bit number.
+ * Unsigned 8-bit number.
  * @see Unsigned
  */
 public class UnsignedByte extends Unsigned {

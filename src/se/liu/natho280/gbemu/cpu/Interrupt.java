@@ -4,7 +4,7 @@ import se.liu.natho280.gbemu.ppu.PPU;
 
 /**
  * Labels for the interrupts. Interrupts are set in various places ({@link Memory#setInputInterrupt},
- * {@link PPU#handleStatRegister}, {@link PPU#vblank}, et cetera) and handled at the start of every se.liu.natho280.GbEmu.CPU cycle
+ * {@link PPU#handleStatRegister}, {@link PPU#vblank}, et cetera) and handled at the start of every CPU cycle
  * ({@link CPU#checkInterrupts}) -- if they should be.
  */
 public enum Interrupt {

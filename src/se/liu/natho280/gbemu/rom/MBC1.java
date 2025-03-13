@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.logging.Level;
 
 /**
- * se.liu.natho280.GbEmu.MBC1, the simplest se.liu.natho280.GbEmu.MBC. See the link for information.
+ * MBC1, the simplest MBC. See the link for information.
  * NOTE: This class is halfway implemented, as such there are warnings!
- * @see <a href=https://gbdev.io/pandocs/MBC1.html>Pan Docs - se.liu.natho280.GbEmu.MBC1</a>
+ * @see <a href=https://gbdev.io/pandocs/MBC1.html>Pan Docs - MBC1</a>
  */
 public class MBC1 implements MBC {
     private static final int ADDRESS_OFFSET = 0x4000;
@@ -55,11 +55,11 @@ public class MBC1 implements MBC {
                 ramEnabled = false;
             }
         } else if (address <= 0x3FFF) {
-            // se.liu.natho280.GbEmu.ROM bank number
+            // ROM bank number
             //System.out.println("switching to bank " + Integer.toHexString(value).toUpperCase());
             this.romBank = (value & 0x1F) % numberOfBanks;
         } else if (address <= 0x5FFF) {
-            // RAM bank number --OR-- upper bits of se.liu.natho280.GbEmu.ROM bank number
+            // RAM bank number --OR-- upper bits of ROM bank number
             this.highBank = value & 0x3;
             //System.out.println("Wrote " + Integer.toHexString(value).toUpperCase() + " to upper bank thing");
         } else {

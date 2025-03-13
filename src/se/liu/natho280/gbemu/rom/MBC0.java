@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * No se.liu.natho280.GbEmu.MBC. Simple games like Tetris and Dr. Mario fit into 32 KiB, and don't need bank switching.
+ * No MBC. Simple games like Tetris and Dr. Mario fit into 32 KiB, and don't need bank switching.
  * @see MBC
  */
 public class MBC0 implements MBC {

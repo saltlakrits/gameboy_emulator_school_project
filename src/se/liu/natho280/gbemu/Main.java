@@ -54,7 +54,7 @@ public class Main {
         Sound?
          */
 
-        Display display = new Display(); // display is shared between se.liu.natho280.GbEmu.ppu and frontend
+        Display display = new Display(); // display is shared between ppu and frontend
         Memory memory = new Memory(romFilePath);
         Registers registers = new Registers();
 
@@ -138,13 +138,13 @@ public class Main {
             return; // vblank
         }
         if (modDots < 80 && !ppu.getFlag(0)) {
-            // Potentially: LOCK se.liu.natho280.GbEmu.OAM BESIDE DMA TRANSFER
+            // Potentially: LOCK OAM BESIDE DMA TRANSFER
             // scanning oam
             ppu.oamScan(ly);
             return;
         }
         if (modDots < 252 && !ppu.getFlag(1)) {
-            // Potentially: UNLOCK se.liu.natho280.GbEmu.OAM
+            // Potentially: UNLOCK OAM
             // mode 3, drawing scanline
             // LOCK VRAM
 //            memory.lockVram(); // implementing the VRAM lock needs very, very careful attention to timing

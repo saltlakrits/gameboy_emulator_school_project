@@ -9,7 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 // TODO Could add specific line info for cartridge header
-// TODO Make this a listener to se.liu.natho280.GbEmu.CPU, highlight current instruction when se.liu.natho280.GbEmu.CPU executes an instruction?
+// TODO Make this a listener to CPU, highlight current instruction when CPU executes an instruction?
 
 /**
  * Disassembles the memory (and turns it into instructions in string form) for showing in the debugging window.
@@ -52,7 +52,7 @@ public class DisassemblyTable {
      * and remake it.
      */
     public void redisassembleROM() {
-        // listener to se.liu.natho280.GbEmu.MBC, re-disassembles memory bank and replaces
+        // listener to MBC, re-disassembles memory bank and replaces
         // disassemblyTableModel.fireTableDataChanged(); // what the fuck?
 
         this.disassemblyTableModel.setRowCount(0);
@@ -94,7 +94,7 @@ public class DisassemblyTable {
     /**
      * Disassembles a single instruction at the memory address passed it, and adds it to the disassemblyTableModel.
      * TODO Maybe generalize this so it can be used for replacing single lines? Programs can write functions to HRAM
-     *  and we can also switch se.liu.natho280.GbEmu.ROM banks.
+     *  and we can also switch ROM banks.
      * @param programCounter
      * @return updated programCounter after disassembling an instruction
      */

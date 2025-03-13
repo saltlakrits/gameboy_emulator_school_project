@@ -2,7 +2,7 @@ package se.liu.natho280.gbemu.cpu;
 
 /**
  * Labels for the {@link Registers}. Just for handling them easily.
- * @see <a href=https://gbdev.io/pandocs/CPU_Registers_and_Flags.html>Pan Docs - se.liu.natho280.GbEmu.CPU se.liu.natho280.GbEmu.Registers and Flags</a>
+ * @see <a href=https://gbdev.io/pandocs/CPU_Registers_and_Flags.html>Pan Docs - CPU Registers and Flags</a>
  */
 public enum Reg {
     A, F, AF, B, C, BC, D, E, DE, H, L, HL, SP, PC;

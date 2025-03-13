@@ -1,9 +1,9 @@
 package se.liu.natho280.gbemu.ppu;
 
 /**
- * In the se.liu.natho280.GbEmu.OAM region of the memory we put 4 bytes, an se.liu.natho280.GbEmu.OAM -- an Object Attribute Map. This class exists simply for
+ * In the OAM region of the memory we put 4 bytes, an OAM -- an Object Attribute Map. This class exists simply for
  * ergonomics in handling them.
- * @see <a href=https://gbdev.io/pandocs/OAM.html>Pan Docs - Object Attribute se.liu.natho280.GbEmu.Memory (se.liu.natho280.GbEmu.OAM)</a>
+ * @see <a href=https://gbdev.io/pandocs/OAM.html>Pan Docs - Object Attribute Memory (OAM)</a>
  */
 public class OAM {
     private final int y;

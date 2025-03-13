@@ -7,12 +7,12 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Secondary (to the emulator screen) JFrame, which displays memory, disassembled se.liu.natho280.GbEmu.ROM (and memory), and registers.
+ * Secondary (to the emulator screen) JFrame, which displays memory, disassembled ROM (and memory), and registers.
  */
 public class MemoryViewer implements MBCListener
 {
 
-    private final JFrame frame = new JFrame("se.liu.natho280.GbEmu.Memory Viewer");
+    private final JFrame frame = new JFrame("Memory Viewer");
     private final MemoryTable memoryTable;
     private final DisassemblyTable disassemblyTable;
     private final RegisterTable registerTable;
@@ -38,6 +38,10 @@ public class MemoryViewer implements MBCListener
 
     public void redisassemble() {
         this.disassemblyTable.redisassembleROM();
+    }
+
+    public void setEmulatorPaused(boolean emulatorPaused) {
+        this.emulatorPaused = emulatorPaused;
     }
 
     public void create() {

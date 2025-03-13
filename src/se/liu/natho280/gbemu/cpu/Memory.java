@@ -10,22 +10,22 @@ import java.util.List;
 
 /**
  * <p>This is the <a href=https://gbdev.io/pandocs/Memory_Map.html>memory</a> of the Game Boy. Input is stored here, as
- * well as all the regions of the memory. VRAM should not be accessible during certain parts of the se.liu.natho280.GbEmu.PPU's cycle, but
- * that is not yet taken into account in this code. However, for future-proofing, the se.liu.natho280.GbEmu.PPU can read the memory
- * with its own method, and the se.liu.natho280.GbEmu.CPU uses the normal read() and write() methods for reads and writes that are
+ * well as all the regions of the memory. VRAM should not be accessible during certain parts of the PPU's cycle, but
+ * that is not yet taken into account in this code. However, for future-proofing, the PPU can read the memory
+ * with its own method, and the CPU uses the normal read() and write() methods for reads and writes that are
  * conditionally blocked.</p>
  *
  * <p>There are many hardware registers where reads and writes are intercepted and doing something different
  * than simply reading and writing to the array.</p>
  */
 public class Memory {
-    // 0x0000 - 0x3FFF is the se.liu.natho280.GbEmu.ROM (bank 00)
-    // 0x4000 - 7FFF is the se.liu.natho280.GbEmu.ROM (bank 1-NN)
+    // 0x0000 - 0x3FFF is the ROM (bank 00)
+    // 0x4000 - 7FFF is the ROM (bank 1-NN)
     private ROM rom;
 
     // each location in memory is a byte
     // addresses: 0x0000 through 0xFFFF
-    // twice as big as needed since se.liu.natho280.GbEmu.ROM isn't here, unsure if JVM will optimize that, keeping it for ease of use
+    // twice as big as needed since ROM isn't here, unsure if JVM will optimize that, keeping it for ease of use
     private final UnsignedByte[] memory = new UnsignedByte[0x10000];
     private int buttonByte = 0xFF;
     private int dpadByte = 0xFF;
@@ -40,7 +40,7 @@ public class Memory {
     private List<MemoryListener> memoryListeners = new ArrayList<>();
 
     public Memory(String romPath) {
-        // create (& probably load) se.liu.natho280.GbEmu.ROM with romPath string
+        // create (& probably load) ROM with romPath string
         this.rom = new ROM(romPath);
         // FIXME some of these addresses may not be "real" memory, but just "magical addresses" that show e.g.
         //  status of hardware and similar (just like how some of the memory just point to the ROM in the cartridge!).
@@ -164,7 +164,7 @@ public class Memory {
     }
 
     /**
-     * For the se.liu.natho280.GbEmu.PPU, and various other classes to use. The se.liu.natho280.GbEmu.PPU & the others are never
+     * For the PPU, and various other classes to use. The PPU & the others are never
      * locked out of reading.
      * @param address
      * @return
@@ -177,7 +177,7 @@ public class Memory {
     }
 
     /**
-     * For the se.liu.natho280.GbEmu.PPU, and various other classes to use. The se.liu.natho280.GbEmu.PPU & the others are never
+     * For the PPU, and various other classes to use. The PPU & the others are never
      * locked out of writing.
      * @param address
      * @param value
@@ -246,7 +246,7 @@ public class Memory {
      * Handled in {@link CPU#checkInterrupts}.
      * @param dpad
      * @param setToHigh
-     * @see <a href=https://gbdev.io/pandocs/Interrupt_Sources.html#int-60--joypad-interrupt>Pan Docs - Joypad se.liu.natho280.GbEmu.Interrupt</a>
+     * @see <a href=https://gbdev.io/pandocs/Interrupt_Sources.html#int-60--joypad-interrupt>Pan Docs - Joypad Interrupt</a>
      */
     private void setInputInterrupt(boolean dpad, boolean setToHigh) {
         int interruptFlags = memory[0xFFFF].get();

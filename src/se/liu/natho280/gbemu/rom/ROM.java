@@ -9,25 +9,25 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 /**
- * Handles the game se.liu.natho280.GbEmu.ROM. Will set the se.liu.natho280.GbEmu.MBC (memory bank controller) appropriately, as long as it is a supported se.liu.natho280.GbEmu.MBC
- * (as of writing, only no-se.liu.natho280.GbEmu.MBC (se.liu.natho280.GbEmu.MBC0) and se.liu.natho280.GbEmu.MBC1 are supported).
+ * Handles the game ROM. Will set the MBC (memory bank controller) appropriately, as long as it is a supported MBC
+ * (as of writing, only no-MBC, MBC0) and MBC1 are supported).
  */
 public class ROM {
     // this will be 0x4000 * N
     // the first
     private static final int RAM_BANK_SIZE = 0x400;
-    private MBC mbc = null; // se.liu.natho280.GbEmu.MBC is read from 0x147
+    private MBC mbc = null; // MBC is read from 0x147
 
-    // se.liu.natho280.GbEmu.ROM size is read from 0x148, but we can just allocate the maximum possible (1.5 MiB)
+    // ROM size is read from 0x148, but we can just allocate the maximum possible (1.5 MiB)
     private final UnsignedByte[] rom = new UnsignedByte[0x180_000];
-//    private final se.liu.natho280.GbEmu.UnsignedByte[] boot = new se.liu.natho280.GbEmu.UnsignedByte[256];
+//    private final UnsignedByte[] boot = new UnsignedByte[256];
     private final UnsignedByte[] ram; // RAM size is read from cartridge! address 0x149
 
     public ROM(String romPath) {
         // load rom
         loadROM(romPath);
 
-        // choose se.liu.natho280.GbEmu.MBC
+        // choose MBC
 
         switch (rom[0x147].get()) {
             case 0:
@@ -66,7 +66,7 @@ public class ROM {
     }
 
     /**
-     * Just for adding things as listeners to the se.liu.natho280.GbEmu.MBC.
+     * Just for adding things as listeners to the MBC.
      * @return
      */
     public MBC getMBC() {
@@ -74,7 +74,7 @@ public class ROM {
     }
 
     /**
-     * Accesses the se.liu.natho280.GbEmu.ROM array with the input address redirected through the se.liu.natho280.GbEmu.MBC.
+     * Accesses the ROM array with the input address redirected through the MBC.
      * @param address
      * @return
      * @see MBC
@@ -84,7 +84,7 @@ public class ROM {
     }
 
     /**
-     * Writes to the se.liu.natho280.GbEmu.MBC registers.
+     * Writes to the MBC registers.
      * @param address
      * @param value
      * @see MBC
@@ -94,8 +94,8 @@ public class ROM {
     }
 
     /**
-     * Loads the se.liu.natho280.GbEmu.ROM-file into the se.liu.natho280.GbEmu.ROM-array.
-     * @param romPath path to se.liu.natho280.GbEmu.ROM-file as string, should be passed into program as the sole argument
+     * Loads the ROM-file into the ROM-array.
+     * @param romPath path to ROM-file as string, should be passed into program as the sole argument
      */
     private void loadROM(String romPath) {
 
@@ -119,10 +119,10 @@ public class ROM {
     }
 
     /**
-     * Matches the number of banks in the se.liu.natho280.GbEmu.ROM to the value at 0x148,
+     * Matches the number of banks in the ROM to the value at 0x148,
      * part of the <a href=https://gbdev.io/pandocs/The_Cartridge_Header.html#0148--rom-size>cartridge header</a>.
      * @param memoryValue value at 0x148
-     * @return the number of banks in the se.liu.natho280.GbEmu.ROM
+     * @return the number of banks in the ROM
      */
     private int romBankNumber(int memoryValue) {
         if (memoryValue < 0x9) {

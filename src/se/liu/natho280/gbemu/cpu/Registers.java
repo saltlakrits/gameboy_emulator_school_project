@@ -12,7 +12,7 @@ import java.util.List;
  *
  * <p>HL is often used as a pointer register, but this is not any kind of hard rule. SP is the
  * stack pointer, and PC is the program counter.</p
- * @see <a href=https://gbdev.io/pandocs/CPU_Registers_and_Flags.html>Pan Docs - se.liu.natho280.GbEmu.CPU se.liu.natho280.GbEmu.Registers and Flags</a>
+ * @see <a href=https://gbdev.io/pandocs/CPU_Registers_and_Flags.html>Pan Docs - CPU Registers and Flags</a>
  */
 public class Registers {
     // 6 of them, 16 bit
@@ -135,7 +135,7 @@ public class Registers {
     public static Reg getSourceRegByNibble(int nibble) {
         // FIXME temp name! perhaps inaccurate in some situations!
         // NOTE: This originally returned a register (enum value), but it was rewritten to return the register
-        // value instead, and moved from the Emu class to the se.liu.natho280.GbEmu.Registers class.
+        // value instead, and moved from the Emu class to the Registers class.
 
         // the pattern simply repeats for values 0x8 - 0xF, so we can just subtract 0x8 and get the same result.
         //if (nibble >= 0x8 && nibble <= 0xF) {

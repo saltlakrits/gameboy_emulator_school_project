@@ -7,7 +7,7 @@ import java.util.logging.Level;
 
 
 /**
- * se.liu.natho280.GbEmu.Main class for use in fetching, decoding and executing instructions from the se.liu.natho280.GbEmu.ROM.
+ * 'Main' class for use in fetching, decoding and executing instructions from the ROM.
  */
 public class CPU {
     // this is the emulator class, that will have the logic one step above the hardware (kind of)
@@ -22,7 +22,7 @@ public class CPU {
     private int haltBugCounter = 0;
 
     /**
-     * The rom path is the program parameter. The se.liu.natho280.GbEmu.Memory is set in the se.liu.natho280.GbEmu.Main file.
+     * The rom path is the program parameter. The Memory is set in the Main file.
      * @param romPath
      * @param memory
      * @see Main
@@ -564,7 +564,6 @@ public class CPU {
                 regs.set((secondNibble <= 0x7 ? Reg.H : Reg.L), sourceRegValue);
                 break;
             case 0x7:
-//                if (regs.get(se.liu.natho280.GbEmu.Reg.PC) == (0xc08d + 1)) System.out.println("B IS: " + regs.get(se.liu.natho280.GbEmu.Reg.B));
                 if (secondNibble <= 0x5 || secondNibble == 0x7) {
                     cycles++; // using HL as pointer always takes an extra cycle
                     int memoryAddress = regs.get(Reg.HL);
@@ -1341,7 +1340,7 @@ public class CPU {
      * an opcode. If we reach 0xCB, we pass in that opcode to this method. This is just to avoid another level of
      * nesting in the gigantic main switch statement, and to keep these secondary instructions together.
      * @param d8 immediate 8-bit instruction
-     * @see <a href=https://www.google.com/>Meganesu se.liu.natho280.GbEmu.CPU Instructions (scroll down)</a>
+     * @see <a href=https://www.google.com/>Meganesu CPU Instructions (scroll down)</a>
      */
     private void bigInstruction(int d8) {
         int firstNibble = (d8 & 0xF0) >> 4;
@@ -1595,9 +1594,9 @@ public class CPU {
     /**
      * There are two built-in timers in the Game Boy, the DIV timer and the TIMA timer. DIV is constantly ticking and
      * overflowing, whereas TIMA has some settings for the program to control. In short, this method will calculate the
-     * increment of the timers based on the cycles the se.liu.natho280.GbEmu.CPU ran.
+     * increment of the timers based on the cycles the CPU ran.
      * @param cycles
-     * @see <a href=https://gbdev.io/pandocs/Timer_and_Divider_Registers.html>Pan Docs - Timer and Divider se.liu.natho280.GbEmu.Registers</a>
+     * @see <a href=https://gbdev.io/pandocs/Timer_and_Divider_Registers.html>Pan Docs - Timer and Divider Registers</a>
      */
     public void updateTimers(int cycles) {
 

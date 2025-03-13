@@ -9,15 +9,15 @@ import java.util.List;
 import java.util.logging.Level;
 
 /**
- * <p>The se.liu.natho280.GbEmu.PPU <a href=https://gbdev.io/pandocs/Graphics.html>Pan Docs - Graphics (Picture Processing Unit)</a>
+ * <p>The PPU <a href=https://gbdev.io/pandocs/Graphics.html>Pan Docs - Graphics (Picture Processing Unit)</a>
  * is the hardware that manages putting graphics on the screen. Easily the most complex part of the emulator as of
  * this writing. Most likely, the way you expect it to work makes some sort
  * of logical sense, whereas the way it actually works does not.</p>
  *
  * <p>No short description of how this really works is sufficient.
- * However, as for a description of what this class does, we create an instance of it in se.liu.natho280.GbEmu.Main, and
+ * However, as for a description of what this class does, we create an instance of it in Main, and
  * we call the different methods that approximate different sections of a line (and frame)
- * draw for each ~16 milliseconds. This ensures that the frame draws remain in some sort of sync with the se.liu.natho280.GbEmu.CPU,
+ * draw for each ~16 milliseconds. This ensures that the frame draws remain in some sort of sync with the CPU,
  * and will display roughly 60 frames per second (should be around 59.7, matching the original Game Boy).</p>
  *
  * <p>Despite the result we present being rather good-looking, the process of putting it on the screen is very
@@ -27,7 +27,7 @@ import java.util.logging.Level;
  * <p>That said, some games WILL look wrong.</p>
  *
  * @see <a href=https://gbdev.io/pandocs/Rendering.html>Pan Docs - Rendering</a>
- * @see <a href=https://hacktix.github.io/GBEDG/ppu/>Hacktix' Game Boy Emulator Development Guide - se.liu.natho280.GbEmu.PPU</a>
+ * @see <a href=https://hacktix.github.io/GBEDG/ppu/>Hacktix' Game Boy Emulator Development Guide - PPU</a>
  */
 public class PPU {
     private Display display;
@@ -38,11 +38,11 @@ public class PPU {
     private int lastScanline = 0;
 
     // these lacked performance
-    // NOTE: they probably didn't, we just ran the se.liu.natho280.GbEmu.PPU way too frequently (redrawing the same line many times per frame)
+    // NOTE: they probably didn't, we just ran the PPU way too frequently (redrawing the same line many times per frame)
     // it is unlikely they were actually a bottleneck. that said, these FIFOs ended up being more convenient for the
     // sprite FIFO when the logic behind filling it was rewritten, so it worked out in the end.
-    // ArrayDeque<se.liu.natho280.GbEmu.FIFOPixel> bgFifo = new ArrayDeque<>();
-    // ArrayDeque<se.liu.natho280.GbEmu.FIFOPixel> sprFifo = new ArrayDeque<>();
+    // ArrayDeque<FIFOPixel> bgFifo = new ArrayDeque<>();
+    // ArrayDeque<FIFOPixel> sprFifo = new ArrayDeque<>();
 
     /**
      * First In First Out queue for background pixels.
@@ -132,7 +132,7 @@ public class PPU {
     }
 
     /**
-     * STAT se.liu.natho280.GbEmu.Interrupt depends on which flags (in 0xFF41) the program has set. This is a convenience function
+     * STAT Interrupt depends on which flags (in 0xFF41) the program has set. This is a convenience function
      * that keeps all the logic together in one place.
      * @see StatLine
      * @see <a href=https://gbdev.io/pandocs/STAT.html#ff41--stat-lcd-status>Pan Docs - FF41 — STAT: LCD status</a>
@@ -163,7 +163,7 @@ public class PPU {
                 // iff it went high, set interrupt
                 setInterruptBit(Interrupt.STAT, statInterrupt);
                 break;
-            case TWO: // se.liu.natho280.GbEmu.OAM scan mode
+            case TWO: // OAM scan mode
                 memory.unconditionalWrite(0xFF41, (statReg & ((3 ^ 0xFF))) | 0x2);
 
                 // add "signal" to STAT-line and grab whether it goes from low to high
@@ -199,7 +199,7 @@ public class PPU {
 
         handleStatRegister(StatReg.TWO);
 
-        // se.liu.natho280.GbEmu.OAM Scan for y-coord matching objects, se.liu.natho280.GbEmu.OAM is between 0xFE00 to 0xFE9F // 40 dots per scanline!!
+        // OAM Scan for y-coord matching objects, OAM is between 0xFE00 to 0xFE9F // 40 dots per scanline!!
         OAM[] oams = memory.getOAMs();
         int lcdc = memory.unconditionalRead(0xFF40);
         // bit 2 of LCD Control flags determine whether sprite height is 8 or 16 pixels.
@@ -227,7 +227,7 @@ public class PPU {
 
     /**
      * Draws a scanline, from left to right. This is a very involved process, and likely the most complicated in the
-     * whole emulator. The se.liu.natho280.GbEmu.OAM section shouldn't (? FIXME) be able to change during a screen draw, so it should
+     * whole emulator. The OAM section shouldn't (? FIXME) be able to change during a screen draw, so it should
      * only be read once and passed in or all scanlines.
      * @param ly the current y-coordinate
      */
@@ -257,7 +257,7 @@ public class PPU {
         // for each pixel in the row, determine whether to draw a sprite, the window, or the background
 
         int x = 0;
-        // se.liu.natho280.GbEmu.FIFOQueue stage
+        // FIFOQueue stage
         while (x < 160) {
             // get tile
             // -- we determine which background/window tile to fetch pixels from. we default to 0x9800 tilemap.
@@ -312,7 +312,7 @@ public class PPU {
                 }
             }
 
-            // add sprites to sprite se.liu.natho280.GbEmu.FIFOQueue
+            // add sprites to sprite FIFOQueue
             buildSprFifo(spriteHeight, x, ly);
 
             // now choose a pixel to push
