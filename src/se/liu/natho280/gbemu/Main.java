@@ -19,6 +19,7 @@ public class Main {
     // about 70220.99... so add 1.
     private static final int DOTS_PER_FRAME = (int)(DOTS_PER_SECOND / FRAMES_PER_SECOND) + 1;
 
+
 //    private static final long MILLIS_PER_FRAME = (long)((1.0 / 59.73) * 1000);
 
     public static void main(String[] args) {
@@ -31,7 +32,7 @@ public class Main {
         }
 
         // kinda dirty but does the trick i think
-        String romPath = "";
+        String romFilePath = "";
         boolean showDebuggerAtStartup = false;
         if (args[0].equals("-d")) {
             showDebuggerAtStartup = true;
@@ -39,9 +40,9 @@ public class Main {
                 System.out.println("Please specify a se.liu.natho280.GbEmu.ROM file after the '-d' switch, in one word, and nothing else.");
                 System.exit(-1);
             } else {
-                romPath = args[1];
+                romFilePath = args[1];
             }
-        } else romPath = args[0];
+        } else romFilePath = args[0];
 
         /*
         TODO
@@ -79,7 +80,7 @@ public class Main {
          */
 
         Display display = new Display(); // display is shared between se.liu.natho280.GbEmu.ppu and frontend
-        Memory memory = new Memory(romPath);
+        Memory memory = new Memory(romFilePath);
         Registers registers = new Registers();
 
         MemoryViewer memoryViewer = new MemoryViewer(memory, registers, showDebuggerAtStartup);
