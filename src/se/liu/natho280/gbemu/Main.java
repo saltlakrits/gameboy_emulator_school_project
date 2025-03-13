@@ -1,7 +1,12 @@
 package se.liu.natho280.gbemu;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
+import se.liu.natho280.gbemu.cpu.CPU;
+import se.liu.natho280.gbemu.cpu.Memory;
+import se.liu.natho280.gbemu.cpu.Registers;
+import se.liu.natho280.gbemu.debugger.MemoryViewer;
+import se.liu.natho280.gbemu.gui.EmuViewer;
+import se.liu.natho280.gbemu.ppu.Display;
+import se.liu.natho280.gbemu.ppu.PPU;
 
 /**
  * Entry point. Sets up the different parts of the emulator, including frontend, and starts a loop of running {@link CPU} and
@@ -14,7 +19,7 @@ public class Main {
     // about 70220.99... so add 1.
     private static final int DOTS_PER_FRAME = (int)(DOTS_PER_SECOND / FRAMES_PER_SECOND) + 1;
 
-    private static final long MILLIS_PER_FRAME = (long)((1. / 59.73) * 1000);
+//    private static final long MILLIS_PER_FRAME = (long)((1.0 / 59.73) * 1000);
 
     public static void main(String[] args) {
 
@@ -79,7 +84,7 @@ public class Main {
 
         MemoryViewer memoryViewer = new MemoryViewer(memory, registers, showDebuggerAtStartup);
 
-        CPU cpu = new CPU(args[0], memory, registers);
+        CPU cpu = new CPU(memory, registers);
         cpu.setupBoot();
 
         EmuViewer emuViewer = new EmuViewer(memory, display, memoryViewer);
@@ -97,7 +102,7 @@ public class Main {
 
                     ppuCycle(dots, ppu, memory);
 
-                    if (memoryViewer.getEmulatorPaused() && memoryViewer.getStep()) {
+                    if (memoryViewer.getEmulatorPaused() && memoryViewer.getShouldStep()) {
                         cycles = cpuCycle(cpu);
                         memoryViewer.postStepUpdate();
                     } else if (!memoryViewer.getEmulatorPaused()) {
