@@ -86,7 +86,7 @@ public class CPU {
      * to it after pushing the current value of it to the stack.
      * @see <a href=https://gbdev.io/pandocs/Interrupts.html>Pan Docs - Interrupts</a>
      */
-    private void checkInterrupts() {
+    private void handleInterrupts() {
         int interruptEnableFlags = memory.read(0xFFFF);
         int interruptFlags = memory.read(0xFF0F);
 
@@ -169,7 +169,7 @@ public class CPU {
         if (haltBugCounter == 1) regs.addPC(-1);
 
         // Check & handle interrupts -- I think this should work?
-        checkInterrupts();
+        handleInterrupts();
         if (halted) return 0;
 
         int instruction = memory.read(regs.get(Reg.PC));
