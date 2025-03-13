@@ -19,8 +19,7 @@ public class CuteLogger {
 	try {
 	    fileHandler = new FileHandler("cuteLog.log", fileLogLimit, 1, true);
 	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, "Could not open log file:", e);
-		return;
+	    LOGGER.log(Level.SEVERE, "Could not open log file:", e + "\nContinuing without a log file.");
 	}
 
 	LOGGER.setLevel(Level.ALL);
@@ -30,7 +29,7 @@ public class CuteLogger {
 	    SimpleFormatter simpleFormatter = new SimpleFormatter();
 	    fileHandler.setFormatter(simpleFormatter);
 	} else {
-	    System.err.println("Level: " + l + ", " + message);
+	    LOGGER.log(Level.SEVERE, "Level: " + l + ", " + message);
 	}
 
     }
