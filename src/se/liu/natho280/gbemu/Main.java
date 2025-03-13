@@ -85,7 +85,7 @@ public class Main {
         MemoryViewer memoryViewer = new MemoryViewer(memory, registers, showDebuggerAtStartup);
 
         CPU cpu = new CPU(memory, registers);
-        cpu.setupBoot();
+        cpu.setUpBoot();
 
         EmuViewer emuViewer = new EmuViewer(memory, display, memoryViewer);
         emuViewer.show();

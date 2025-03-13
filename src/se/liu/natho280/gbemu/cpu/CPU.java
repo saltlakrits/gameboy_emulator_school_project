@@ -114,7 +114,7 @@ public class CPU {
      * These are all the important values (values that games may rely on being there) the boot rom sets.
      * If this is run at startup, the boot rom is skippable.
      */
-    public void setupBoot() {
+    public void setUpBoot() {
         regs.set(Reg.A, 0x01);
         regs.set(Reg.F, 0xB0);
 

@@ -17,7 +17,6 @@ public class MemoryViewer implements MBCListener
     private final DisassemblyTable disassemblyTable;
     private final RegisterTable registerTable;
 
-    private boolean showDebugger = false;
     private boolean emulatorPaused = false;
     private boolean shouldStep = false;
 
@@ -30,7 +29,6 @@ public class MemoryViewer implements MBCListener
         this.disassemblyTable = new DisassemblyTable(memory);
         this.registerTable = new RegisterTable(regs);
 
-        this.showDebugger = showDebugger;
         this.emulatorPaused = showDebugger;
 
         create();
@@ -59,7 +57,6 @@ public class MemoryViewer implements MBCListener
 
     public void toggleVisibility() {
         frame.setVisible(!frame.isVisible());
-        this.showDebugger = frame.isVisible();
         this.emulatorPaused = frame.isVisible();
     }
 

@@ -7,7 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 
 /**
- * Static object for logging.
+ * Static object for logging. Logs logs for logistical logging purposes.
  */
 public class CuteLogger {
 

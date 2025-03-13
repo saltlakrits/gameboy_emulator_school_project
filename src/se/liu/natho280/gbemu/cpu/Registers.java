@@ -97,21 +97,25 @@ public class Registers {
      */
     public int get(Reg reg) {
         // get whole register, or top/bottom 8 bits of one.
+
+        final int topNibbles = 0xFF00;
+        final int bottomNibbles = 0xFF;
+
         return switch (reg) {
-            case A -> (registers[0].get() & 0xFF00) >> 8;
-            case F -> registers[0].get() & 0xFF;
-            case AF -> registers[0].get() & 0xFFFF;
-            case B -> (registers[1].get() & 0xFF00) >> 8;
-            case C -> registers[1].get() & 0xFF;
-            case BC -> registers[1].get() & 0xFFFF;
-            case D -> (registers[2].get() & 0xFF00) >> 8;
-            case E -> registers[2].get() & 0xFF;
-            case DE -> registers[2].get() & 0xFFFF;
-            case H -> (registers[3].get() & 0xFF00) >> 8;
-            case L -> registers[3].get() & 0xFF;
-            case HL -> registers[3].get() & 0xFFFF;
-            case SP -> registers[4].get() & 0xFFFF;
-            case PC -> registers[5].get() & 0xFFFF;
+            case A -> (registers[0].get() & topNibbles) >> 8;
+            case F -> registers[0].get() & bottomNibbles;
+            case AF -> registers[0].get();
+            case B -> (registers[1].get() & topNibbles) >> 8;
+            case C -> registers[1].get() & bottomNibbles;
+            case BC -> registers[1].get();
+            case D -> (registers[2].get() & topNibbles) >> 8;
+            case E -> registers[2].get() & bottomNibbles;
+            case DE -> registers[2].get();
+            case H -> (registers[3].get() & topNibbles) >> 8;
+            case L -> registers[3].get() & bottomNibbles;
+            case HL -> registers[3].get();
+            case SP -> registers[4].get();
+            case PC -> registers[5].get();
         };
     }
 
