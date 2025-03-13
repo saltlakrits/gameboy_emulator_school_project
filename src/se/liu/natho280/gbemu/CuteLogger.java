@@ -10,14 +10,14 @@ import java.util.logging.SimpleFormatter;
  * Static object for logging. Logs logs for logistical logging purposes.
  */
 public class CuteLogger {
-	private static final int fileLogLimit = 1024 * 1024;
+    private static final int FILE_LOG_LIMIT = 1024 * 1024;
     private static final Logger LOGGER = Logger.getLogger("se.liu.natho280.gbemu");
 
     public static void log(Level l, String message) {
 
 	FileHandler fileHandler = null;
 	try {
-	    fileHandler = new FileHandler("cuteLog.log", fileLogLimit, 1, true);
+	    fileHandler = new FileHandler("cuteLog.log", FILE_LOG_LIMIT, 1, true);
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, "Could not open log file:", e + "\nContinuing without a log file.");
 	}
@@ -31,6 +31,5 @@ public class CuteLogger {
 	} else {
 	    LOGGER.log(Level.SEVERE, "Level: " + l + ", " + message);
 	}
-
     }
 }
