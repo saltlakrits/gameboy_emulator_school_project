@@ -902,7 +902,6 @@ public class CPU {
                         callVec(instruction);
                         break;
                     case 0x8:
-                        // FIXME This may be wrong
                         // cycles 3: LD HL,SP+s8
                         regs.addPC(1);
                         regs.setZeroFlag(false);
@@ -910,10 +909,8 @@ public class CPU {
 
                         regs.setHalfcarryFlag(((regs.get(Reg.SP) & 0xF) + (s8 & 0xF)) > 0xF);
                         regs.setCarryFlag((regs.get(Reg.SP) & 0xFF) + (s8 & 0xFF) > 0xFF);
-                        //regs.set(se.liu.natho280.GbEmu.Reg.SP, regs.get(se.liu.natho280.GbEmu.Reg.SP) + s8); // should this be here????
 
                         regs.set(Reg.HL, regs.get(Reg.SP) + s8);
-                        // regs.set(se.liu.natho280.GbEmu.Reg.HL, regs.get(se.liu.natho280.GbEmu.Reg.SP) + s8); // or this???
                         cycles += 2;
                         break;
                     case 0x9:
@@ -940,7 +937,6 @@ public class CPU {
                         break;
                     case 0xF:
                         // cycles: 4, RST 7
-                        // System.out.println("Look at me.");
                         callVec(instruction);
                         break;
                 }
