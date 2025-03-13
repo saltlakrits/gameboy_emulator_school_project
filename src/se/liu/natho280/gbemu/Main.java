@@ -27,7 +27,7 @@ public class Main {
         System.out.println("Hello, game boy!");
 
         if (args.length != 1 && args.length != 2) {
-            System.out.println("You need to specify a se.liu.natho280.GbEmu.ROM file, in one word, and nothing else, optionally with '-d' to enable showDebuggerAtStartup.");
+            System.out.println("You need to specify a ROM file, in one word, and nothing else, optionally with '-d' to enable showDebuggerAtStartup.");
             System.exit(-1);
         }
 
@@ -37,7 +37,7 @@ public class Main {
         if (args[0].equals("-d")) {
             showDebuggerAtStartup = true;
             if (args.length == 1) {
-                System.out.println("Please specify a se.liu.natho280.GbEmu.ROM file after the '-d' switch, in one word, and nothing else.");
+                System.out.println("Please specify a ROM file after the '-d' switch, in one word, and nothing else.");
                 System.exit(-1);
             } else {
                 romFilePath = args[1];
