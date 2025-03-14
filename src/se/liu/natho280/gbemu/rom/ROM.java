@@ -76,6 +76,7 @@ public class ROM implements Serializable
         this.ram = serializedROM.ram;
 
         List<MBCListener> oldListeners = getMBC().getListeners();
+        // TODO need to notify listeners for disassembly, memory, etc
 
         this.mbc = serializationWrapper.getMBC();
         for (MBCListener listener : oldListeners) {

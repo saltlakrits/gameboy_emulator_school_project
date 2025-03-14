@@ -11,14 +11,15 @@ import java.awt.*;
  * Handles the register portion of the debugging GUI. Updates the values by listening
  * on the register writes.
  */
-public class RegisterTable implements RegisterListener {
+public class RegisterTable {
     private Registers registers;
     private DefaultTableModel registerTableModel;
     private JScrollPane registerScrollPane;
 
+    private static final Reg[] REGISTERS = {Reg.A, Reg.F, Reg.B, Reg.C, Reg.D, Reg.E, Reg.H, Reg.L, Reg.SP, Reg.PC};
+
     public RegisterTable(Registers registers) {
         this.registers = registers;
-        this.registers.addRegisterListener(this);
 
         makeScrollPane();
     }
@@ -135,6 +136,15 @@ public class RegisterTable implements RegisterListener {
             // if SP or PC, we want 4 digits
             this.registerTableModel.setValueAt(String.format("$%04X", registers.get(reg)),
                     matchRegisterToIndex(reg), 1);
+        }
+    }
+
+    /**
+     * Loop through and update all registers visible in UI.
+     */
+    public void updateAllRegisters() {
+        for (Reg reg : REGISTERS) {
+            registerUpdated(reg);
         }
     }
 

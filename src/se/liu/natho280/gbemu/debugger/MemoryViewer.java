@@ -1,6 +1,7 @@
 package se.liu.natho280.gbemu.debugger;
 
 import se.liu.natho280.gbemu.cpu.Memory;
+import se.liu.natho280.gbemu.cpu.Reg;
 import se.liu.natho280.gbemu.cpu.Registers;
 
 import javax.swing.*;
@@ -9,7 +10,7 @@ import java.awt.*;
 /**
  * Secondary (to the emulator screen) JFrame, which displays memory, disassembled ROM (and memory), and registers.
  */
-public class MemoryViewer implements MBCListener
+public class MemoryViewer implements MBCListener, RegisterListener
 {
 
     private final JFrame frame = new JFrame("Memory Viewer");
@@ -24,6 +25,7 @@ public class MemoryViewer implements MBCListener
 
     public MemoryViewer(Memory memory, Registers regs, boolean showDebugger) {
         memory.addMBCListener(this);
+        regs.addRegisterListener(this);
 
         this.memoryTable = new MemoryTable(memory);
         this.disassemblyTable = new DisassemblyTable(memory);
@@ -66,6 +68,11 @@ public class MemoryViewer implements MBCListener
     public void toggleVisibility() {
         frame.setVisible(!frame.isVisible());
         this.emulatorPaused = frame.isVisible();
+
+        if (this.emulatorPaused) {
+            // upon pausing, update all registers in the frontend
+            registerTable.updateAllRegisters();
+        }
     }
 
     public boolean getShouldStep() {
@@ -74,6 +81,11 @@ public class MemoryViewer implements MBCListener
 
     public void toggleDebugging() {
         this.emulatorPaused = !this.emulatorPaused;
+
+        if (this.emulatorPaused) {
+            // upon pausing, update all registers in the frontend
+            registerTable.updateAllRegisters();
+        }
     }
 
     public boolean getEmulatorPaused() {
@@ -92,5 +104,12 @@ public class MemoryViewer implements MBCListener
 
     public void bankSwitched() {
         this.bankSwitched = true;
+    }
+
+    @Override
+    public void registerUpdated(final Reg reg) {
+        if (this.emulatorPaused) {
+            this.registerTable.registerUpdated(reg);
+        }
     }
 }
