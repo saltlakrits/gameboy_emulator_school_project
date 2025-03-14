@@ -116,8 +116,11 @@ public class EmuViewer {
         in.put(KeyStroke.getKeyStroke("released Y"), "select_button_up");
 
         in.put(KeyStroke.getKeyStroke("F1"), "toggle_show_debugger");
-        in.put(KeyStroke.getKeyStroke("F4"), "toggle_debugging");
-        in.put(KeyStroke.getKeyStroke("F5"), "step_forward");
+        in.put(KeyStroke.getKeyStroke("F2"), "toggle_debugging");
+        in.put(KeyStroke.getKeyStroke("F3"), "step_forward");
+        in.put(KeyStroke.getKeyStroke("F4"), "load_rom");
+        in.put(KeyStroke.getKeyStroke("F5"), "save_state");
+        in.put(KeyStroke.getKeyStroke("F6"), "load_state");
 
         final ActionMap act = pane.getActionMap();
         act.put("left_down", new PressAction(GameButton.LEFT));
@@ -132,6 +135,9 @@ public class EmuViewer {
         act.put("toggle_show_debugger", new ToggleDebuggerVisibilityAction());
         act.put("toggle_debugging", new ToggleDebuggingAction());
         act.put("step_forward", new StepForwardAction());
+        act.put("load_rom", new LoadROMAction());
+        act.put("save_state", new SaveStateAction());
+        act.put("load_state", new LoadStateAction());
 
         act.put("left_up", new ReleaseAction(GameButton.LEFT));
         act.put("right_up", new ReleaseAction(GameButton.RIGHT));
@@ -150,6 +156,7 @@ public class EmuViewer {
                 if (e.getButton() != MouseEvent.BUTTON3) return;
 
                 popupMenu.show(e.getComponent(), e.getX(), e.getY());
+
             }
 
             // rest are of no importance
@@ -159,15 +166,48 @@ public class EmuViewer {
             @Override public void mouseExited(final MouseEvent e) {}
         });
 
-        JMenuItem openROM = new JMenuItem("Load ROM");
+        JMenuItem toggleShowDebugger = new JMenuItem("Toggle debugging window") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F1");
+            }
+        };
+        toggleShowDebugger.addActionListener(new ToggleDebuggerVisibilityAction());
+        popupMenu.add(toggleShowDebugger);
+
+        JMenuItem togglePause = new JMenuItem("Toggle pause") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F2");
+            }
+        };
+        togglePause.addActionListener(new ToggleDebuggingAction());
+        popupMenu.add(togglePause);
+
+        JMenuItem openROM = new JMenuItem("Load ROM") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F5");
+            }
+        };
         openROM.addActionListener(new LoadROMAction());
         popupMenu.add(openROM);
 
-        JMenuItem saveState = new JMenuItem("Save State");
+        JMenuItem saveState = new JMenuItem("Save State") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F5");
+            }
+        };
         saveState.addActionListener(new SaveStateAction());
         popupMenu.add(saveState);
 
-        JMenuItem loadState = new JMenuItem("Load State");
+        JMenuItem loadState = new JMenuItem("Load State") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F6");
+            }
+        };
         loadState.addActionListener(new LoadStateAction());
         popupMenu.add(loadState);
     }
