@@ -11,10 +11,12 @@ import se.liu.natho280.gbemu.debugger.MemoryViewer;
 import se.liu.natho280.gbemu.ppu.Display;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.util.HexFormat;
 import java.util.logging.Level;
 
@@ -184,10 +186,19 @@ public class EmuViewer {
         togglePause.addActionListener(new ToggleDebuggingAction());
         popupMenu.add(togglePause);
 
+        JMenuItem step = new JMenuItem("Step forward") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F3");
+            }
+        };
+        step.addActionListener(new StepForwardAction());
+        popupMenu.add(step);
+
         JMenuItem openROM = new JMenuItem("Load ROM") {
             @Override
             public KeyStroke getAccelerator() {
-                return KeyStroke.getKeyStroke("F5");
+                return KeyStroke.getKeyStroke("F4");
             }
         };
         openROM.addActionListener(new LoadROMAction());
@@ -215,49 +226,63 @@ public class EmuViewer {
     private class LoadROMAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
-            // pause emulation while this is happening!
-	    FileDialog fd = new FileDialog(frame, "Load ROM", FileDialog.LOAD);
-            fd.setVisible(true);
-            String newROMPath = fd.getDirectory() + fd.getFile();
+            // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
+            JFileChooser fc = new JFileChooser();
+            // reasonable size on large screens, not too big for tiny screens
+            fc.setPreferredSize(new Dimension(800, 600));
+            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fc.setDialogTitle("Load ROM");
+            fc.setDialogType(JFileChooser.OPEN_DIALOG);
+            fc.setFileFilter(new FileNameExtensionFilter(".gb files", "gb"));
 
-            // if null, just cleanly return!
-            if (fd.getDirectory() == null || fd.getFile() == null) {
-                return;
+            if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                String romPath = fc.getSelectedFile().getAbsolutePath();
+                changeROM(romPath);
             }
-
-            changeROM(newROMPath);
 	}
     }
 
     private class SaveStateAction extends AbstractAction {
 
         @Override public void actionPerformed(final ActionEvent e) {
-            // pause emulation while this is happening!
-            FileDialog fd = new FileDialog(frame, "Save state to file...", FileDialog.SAVE);
-            fd.setVisible(true);
-            String savePath = fd.getDirectory() + fd.getFile();
 
-            // if null, just cleanly return!
-            if (fd.getDirectory() == null || fd.getFile() == null) {
-                return;
+            // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
+            JFileChooser fc = new JFileChooser();
+            fc.setSelectedFile(new File("myState.state"));
+            // reasonable size on large screens, not too big for tiny screens
+            fc.setPreferredSize(new Dimension(800, 600));
+            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fc.setDialogTitle("Save State");
+            fc.setDialogType(JFileChooser.SAVE_DIALOG);
+            fc.setFileFilter(new FileNameExtensionFilter(".state files", "state"));
+
+            if (fc.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                String savePath = fc.getSelectedFile().getAbsolutePath();
+                if (!savePath.endsWith(".state")) {
+                    savePath += ".state";
+                }
+
+                saveState(savePath);
             }
-
-            saveState(savePath);
         }
     }
 
     private class LoadStateAction extends AbstractAction {
         @Override public void actionPerformed(final ActionEvent e) {
-            FileDialog fd = new FileDialog(frame, "Load state from file...", FileDialog.LOAD);
-            fd.setVisible(true);
-            String loadPath = fd.getDirectory() + fd.getFile();
 
-            // if null, just cleanly return!
-            if (fd.getDirectory() == null || fd.getFile() == null) {
-                return;
+            // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
+            JFileChooser fc = new JFileChooser();
+            // reasonable size on large screens, not too big for tiny screens
+            fc.setPreferredSize(new Dimension(800, 600));
+            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fc.setDialogTitle("Load State");
+            fc.setDialogType(JFileChooser.OPEN_DIALOG);
+            fc.setFileFilter(new FileNameExtensionFilter(".state files", "state"));
+
+            if (fc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                String loadPath = fc.getSelectedFile().getAbsolutePath();
+                loadState(loadPath);
             }
-
-            loadState(loadPath);
         }
     }
 
@@ -316,6 +341,7 @@ public class EmuViewer {
     private class StepForwardAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
+            if (!memoryViewer.getEmulatorPaused()) new ToggleDebuggingAction().actionPerformed(e);
             memoryViewer.step();
         }
     }
