@@ -54,6 +54,9 @@ public class MemoryTable implements MemoryListener {
 
         // Create Table
         this.memoryTable = new JTable(tableModel);
+        // remove default keybinding, our table isn't editable anyway!
+        this.memoryTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F2"), "none");
+
         this.memoryTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
         memoryTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         TableColumnModel colMod = memoryTable.getColumnModel();

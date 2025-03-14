@@ -35,6 +35,9 @@ public class DisassemblyTable {
         disassembleMemory();
 
         this.disassemblyTable = new JTable(disassemblyTableModel);
+        // remove default keybinding, our table isn't editable anyway!
+        this.disassemblyTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F2"), "none");
+
         this.disassemblyTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
         this.disassemblyTableScrollPane = new JScrollPane(disassemblyTable);
     }

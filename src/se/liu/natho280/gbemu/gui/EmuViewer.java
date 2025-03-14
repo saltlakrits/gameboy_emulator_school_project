@@ -53,6 +53,10 @@ public class EmuViewer {
        }
     }
 
+    public JFrame getFrame() {
+        return frame;
+    }
+
     private void loadState(String statePath) {
         synchronized (cpu.lock()) {
             SerializationWrapper serializationWrapper = new SerializationWrapper(statePath);

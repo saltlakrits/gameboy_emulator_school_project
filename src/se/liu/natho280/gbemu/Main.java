@@ -68,6 +68,7 @@ public class Main {
 
         EmuViewer emuViewer = new EmuViewer(cpu, memory, display, memoryViewer);
         emuViewer.show();
+        memoryViewer.setEmuFrame(emuViewer.getFrame());
 
         PPU ppu = new PPU(display, memory);
 

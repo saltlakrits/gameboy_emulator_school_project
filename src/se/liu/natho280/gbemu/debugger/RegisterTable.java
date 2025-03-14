@@ -50,6 +50,9 @@ public class RegisterTable {
         }
 
 	JTable registerTable = new JTable(this.registerTableModel);
+        // remove default keybinding, our table isn't editable anyway!
+        registerTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F2"), "none");
+
         registerTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
         this.registerScrollPane = new JScrollPane(registerTable);
     }

@@ -6,13 +6,14 @@ import se.liu.natho280.gbemu.cpu.Registers;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 /**
  * Secondary (to the emulator screen) JFrame, which displays memory, disassembled ROM (and memory), and registers.
  */
-public class MemoryViewer implements MBCListener, RegisterListener
-{
+public class MemoryViewer implements MBCListener, RegisterListener {
 
+    private JFrame emuFrame = null;
     private final JFrame frame = new JFrame("Memory Viewer");
     private final MemoryTable memoryTable;
     private final DisassemblyTable disassemblyTable;
@@ -36,6 +37,10 @@ public class MemoryViewer implements MBCListener, RegisterListener
         create();
 
         frame.setVisible(showDebugger);
+    }
+
+    public void setEmuFrame(JFrame frame) {
+        this.emuFrame = frame;
     }
 
     public void redisassemble() {
@@ -63,6 +68,16 @@ public class MemoryViewer implements MBCListener, RegisterListener
         frame.add(memoryTable.getMemoryTableScrollPane());
         frame.pack();
         frame.setLocationRelativeTo(null);
+
+        // input
+        JComponent pane = frame.getRootPane();
+        final InputMap in = pane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        in.put(KeyStroke.getKeyStroke("F2"), "toggle_debugging");
+        in.put(KeyStroke.getKeyStroke("F3"), "step_forward");
+
+        final ActionMap act = pane.getActionMap();
+        act.put("toggle_debugging", new ToggleDebuggingAction());
+        act.put("step_forward", new StepForwardAction());
     }
 
     public void toggleVisibility() {
@@ -110,6 +125,27 @@ public class MemoryViewer implements MBCListener, RegisterListener
     public void registerUpdated(final Reg reg) {
         if (this.emulatorPaused) {
             this.registerTable.registerUpdated(reg);
+        }
+    }
+
+    private class ToggleDebuggingAction extends AbstractAction {
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            toggleDebugging();
+            if (getEmulatorPaused()) {
+                emuFrame.setTitle("gbEmu (paused)");
+                postStepUpdate();
+            } else {
+                emuFrame.setTitle("gbEmu");
+            }
+        }
+    }
+
+    private class StepForwardAction extends AbstractAction {
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            if (!getEmulatorPaused()) new ToggleDebuggingAction().actionPerformed(e);
+            step();
         }
     }
 }
