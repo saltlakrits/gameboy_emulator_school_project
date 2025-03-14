@@ -2,12 +2,9 @@ package se.liu.natho280.gbemu.cpu;
 
 import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.Main;
-import se.liu.natho280.gbemu.debugger.RegisterListener;
 import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 
