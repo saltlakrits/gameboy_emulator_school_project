@@ -1,5 +1,6 @@
 package se.liu.natho280.gbemu;
 
+import com.formdev.flatlaf.FlatLightLaf;
 import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.Memory;
 import se.liu.natho280.gbemu.cpu.Registers;
@@ -23,6 +24,8 @@ public class Main {
 //    private static final long MILLIS_PER_FRAME = (long)((1.0 / 59.73) * 1000);
 
     public static void main(String[] args) {
+
+        FlatLightLaf.setup();
 
         System.out.println("Hello, game boy!");
 
