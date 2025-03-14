@@ -285,7 +285,8 @@ public class PPU {
             // else use mathy fetcherX
             // now determine fetcher coords!
             if (inWindow) {
-                if (ly == 143) System.out.println("woo");
+                // TODO beep boop
+                //if (ly == 143) System.out.println("woo");
 
                 // use window coords to get window tile!
                 // WE FLUSH THE BG PIXELS AND GET WINDOW PIXELS

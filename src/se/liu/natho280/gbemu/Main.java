@@ -74,21 +74,24 @@ public class Main {
 
                 // run all the dots (T-cycles) for a single frame
                 while (dots < DOTS_PER_FRAME) {
-                    int cycles;
 
-                    ppuCycle(dots, ppu, memory);
+                    synchronized (cpu.lock()) {
+                        int cycles;
 
-                    if (memoryViewer.getEmulatorPaused() && memoryViewer.getShouldStep()) {
-                        cycles = cpuCycle(cpu);
-                        memoryViewer.postStepUpdate();
-                    } else if (!memoryViewer.getEmulatorPaused()) {
-                        cycles = cpuCycle(cpu);
-                    } else {
-                        cycles = 0;
+                        ppuCycle(dots, ppu, memory);
+
+                        if (memoryViewer.getEmulatorPaused() && memoryViewer.getShouldStep()) {
+                            cycles = cpuCycle(cpu);
+                            memoryViewer.postStepUpdate();
+                        } else if (!memoryViewer.getEmulatorPaused()) {
+                            cycles = cpuCycle(cpu);
+                        } else {
+                            cycles = 0;
+                        }
+
+                        memory.subDmaTransferLock(cycles * 4);
+                        dots += cycles * 4;
                     }
-
-                    memory.subDmaTransferLock(cycles * 4);
-                    dots += cycles * 4;
                 }
 
                 while (frameTime > System.currentTimeMillis()) {
@@ -107,7 +110,6 @@ public class Main {
             cycles = 1;
         }
         cpu.updateTimers(cycles);
-//        dots += 4 * cycles;
 
         return cycles;
     }

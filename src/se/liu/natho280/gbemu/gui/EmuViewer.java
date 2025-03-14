@@ -1,5 +1,7 @@
 package se.liu.natho280.gbemu.gui;
 
+import se.liu.natho280.gbemu.CuteLogger;
+import se.liu.natho280.gbemu.cpu.Reg;
 import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.GameButton;
@@ -13,6 +15,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.HexFormat;
+import java.util.logging.Level;
 
 /**
  * The frontend window that displays the emulator screen and receives the input from the user.
@@ -40,28 +44,44 @@ public class EmuViewer {
      * @param newROM path to new ROM file
      */
     private void changeROM(String newROM) {
-        memoryViewer.setEmulatorPaused(true); // pause emulator while reinitializing it
-        this.memory.reInitializeMemory(newROM); // reinitialize memory (zero it out), inside it reInit ROM as well?
-        this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
-        this.memoryViewer.redisassemble();
-        memoryViewer.setEmulatorPaused(false); // done reinitializing -> unpause
+       synchronized (cpu.lock()) {
+           this.memory.reInitializeMemory(newROM); // reinitialize memory (zero it out), inside it reInit ROM as well?
+           this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
+           this.memoryViewer.redisassemble();
+       }
     }
 
     private void saveState(String statePath) {
-        memoryViewer.setEmulatorPaused(true);
-        SerializationWrapper sw = new SerializationWrapper(this.cpu.getRegisters(), this.memory);
-        sw.serialize(statePath);
-        memoryViewer.setEmulatorPaused(false);
+        synchronized (cpu.lock()) {
+            SerializationWrapper sw = new SerializationWrapper(this.cpu, this.memory);
+            sw.serialize(statePath);
+            logRegs(this.cpu.getRegisters());
+        }
+    }
+
+    private void logRegs(Registers regs) {
+        StringBuilder sb = new StringBuilder();
+        HexFormat hex = HexFormat.of();
+
+        sb.append("AF: $").append(hex.toHexDigits((byte)regs.get(Reg.AF)));
+        sb.append("\nBC: $").append(hex.toHexDigits((byte)regs.get(Reg.BC)));
+        sb.append("\nDE: $").append(hex.toHexDigits((byte)regs.get(Reg.DE)));
+        sb.append("\nHL: $").append(hex.toHexDigits((byte)regs.get(Reg.HL)));
+        sb.append("\nSP: $").append(hex.toHexDigits((short)regs.get(Reg.SP)));
+        sb.append("\nPC: $").append(hex.toHexDigits((short)regs.get(Reg.PC)));
+
+        CuteLogger.log(Level.INFO, sb.toString());
     }
 
     private void loadState(String statePath) {
-        memoryViewer.setEmulatorPaused(true);
-        SerializationWrapper serializationWrapper = new SerializationWrapper(statePath);
-        Registers stateRegisters = serializationWrapper.getRegisters();
+        synchronized (cpu.lock()) {
+            SerializationWrapper serializationWrapper = new SerializationWrapper(statePath);
 
-        this.memory.restoreState(serializationWrapper);
-        this.cpu.getRegisters().restoreState(stateRegisters);
-        memoryViewer.setEmulatorPaused(false);
+            this.memory.restoreState(serializationWrapper);
+            this.cpu.restoreState(serializationWrapper);
+
+            logRegs(this.cpu.getRegisters());
+        }
     }
 
     public void show() {
@@ -155,9 +175,11 @@ public class EmuViewer {
     private class LoadROMAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
+            // pause emulation while this is happening!
 	    FileDialog fd = new FileDialog(frame, "Load ROM", FileDialog.LOAD);
             fd.setVisible(true);
             String newROMPath = fd.getDirectory() + fd.getFile();
+            // if null, just cleanly return!
 
             changeROM(newROMPath);
 	}
@@ -166,9 +188,11 @@ public class EmuViewer {
     private class SaveStateAction extends AbstractAction {
 
         @Override public void actionPerformed(final ActionEvent e) {
+            // pause emulation while this is happening!
             FileDialog fd = new FileDialog(frame, "Save state to file...", FileDialog.SAVE);
             fd.setVisible(true);
             String savePath = fd.getDirectory() + fd.getFile();
+            // if null, just cleanly return!
 
             // do something with the path, NYI
             saveState(savePath);

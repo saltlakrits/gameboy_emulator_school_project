@@ -2,24 +2,32 @@ package se.liu.natho280.gbemu.cpu;
 
 import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.Main;
+import se.liu.natho280.gbemu.debugger.RegisterListener;
+import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 
 /**
  * 'Main' class for use in fetching, decoding and executing instructions from the ROM.
  */
-public class CPU {
+public class CPU implements Serializable {
     // this is the emulator class, that will have the logic one step above the hardware (kind of)
     // this class is what ultimately utilizes the smaller hardware components to fetch, decode and execute instructions.
-    private Memory memory;
-    private Registers regs;
+    private transient Memory memory;
+    private Registers regs; // FIXME We are doing this separately, fix!
     private int cycles = 0;
     // interrupt master enable flag, true -> we will call interrupt handlers
     private boolean interruptsEnabled = false;
 
     private boolean halted = false;
     private int haltBugCounter = 0;
+
+    // For synchronizing
+    private Object lock = new Object();
 
     /**
      * The rom path is the program parameter. The Memory is set in the Main file.
@@ -47,6 +55,21 @@ public class CPU {
 
     public Registers getRegisters() {
         return this.regs.copy();
+    }
+
+    public void restoreState(final SerializationWrapper serializationWrapper) {
+        CPU serializedCPU = serializationWrapper.getCPU();
+        this.halted = serializedCPU.halted;
+        this.cycles = serializedCPU.cycles;
+        this.haltBugCounter = serializedCPU.haltBugCounter;
+        this.interruptsEnabled = serializedCPU.interruptsEnabled;
+
+        this.regs.restoreState(serializedCPU.getRegisters());
+
+//        List<RegisterListener> oldListeners = regs.getListeners();
+//        for (RegisterListener listener : oldListeners) {
+//            this.regs.addRegisterListener(listener);
+//        }
     }
 
     public void pushPC() {
@@ -166,6 +189,10 @@ public class CPU {
         } else {
             return ((memory.read(0xFFFF) & memory.read(0xFF0F)) == 0);
         }
+    }
+
+    public Object lock() {
+        return this.lock;
     }
 
     /**

@@ -28,6 +28,8 @@ public class CuteLogger {
 	    LOGGER.addHandler(fileHandler);
 	    SimpleFormatter simpleFormatter = new SimpleFormatter();
 	    fileHandler.setFormatter(simpleFormatter);
+	    LOGGER.log(l, message);
+	    fileHandler.close();
 	} else {
 	    LOGGER.log(Level.SEVERE, "Level: " + l + ", " + message);
 	}
