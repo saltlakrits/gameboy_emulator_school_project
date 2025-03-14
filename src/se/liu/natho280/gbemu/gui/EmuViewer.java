@@ -219,7 +219,11 @@ public class EmuViewer {
 	    FileDialog fd = new FileDialog(frame, "Load ROM", FileDialog.LOAD);
             fd.setVisible(true);
             String newROMPath = fd.getDirectory() + fd.getFile();
+
             // if null, just cleanly return!
+            if (fd.getDirectory() == null || fd.getFile() == null) {
+                return;
+            }
 
             changeROM(newROMPath);
 	}
@@ -232,9 +236,12 @@ public class EmuViewer {
             FileDialog fd = new FileDialog(frame, "Save state to file...", FileDialog.SAVE);
             fd.setVisible(true);
             String savePath = fd.getDirectory() + fd.getFile();
-            // if null, just cleanly return!
 
-            // do something with the path, NYI
+            // if null, just cleanly return!
+            if (fd.getDirectory() == null || fd.getFile() == null) {
+                return;
+            }
+
             saveState(savePath);
         }
     }
@@ -245,7 +252,11 @@ public class EmuViewer {
             fd.setVisible(true);
             String loadPath = fd.getDirectory() + fd.getFile();
 
-            // do something with the path, NYI
+            // if null, just cleanly return!
+            if (fd.getDirectory() == null || fd.getFile() == null) {
+                return;
+            }
+
             loadState(loadPath);
         }
     }
