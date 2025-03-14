@@ -1,27 +1,32 @@
 package se.liu.natho280.gbemu.rom;
 
 import se.liu.natho280.gbemu.CuteLogger;
+import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.cpu.UnsignedByte;
+import se.liu.natho280.gbemu.debugger.MBCListener;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
 import java.util.logging.Level;
 
 /**
- * Handles the game ROM. Will set the MBC (memory bank controller) appropriately, as long as it is a supported MBC
- * (as of writing, only no-MBC, MBC0) and MBC1 are supported).
+ * Handles the game ROM. Will set the MBC (memory bank controller) appropriately, as long as it is a supported MBC (as of writing, only
+ * no-MBC, MBC0) and MBC1 are supported).
  */
-public class ROM {
+public class ROM implements Serializable
+{
     // this will be 0x4000 * N
     // the first
     private static final int RAM_BANK_SIZE = 0x400;
-    private MBC mbc = null; // MBC is read from 0x147
+    private transient AbstractMBC mbc = null; // MBC is read from 0x147
 
     // ROM size is read from 0x148, but we can just allocate the maximum possible (1.5 MiB)
-    private final UnsignedByte[] rom = new UnsignedByte[0x180_000];
-//    private final UnsignedByte[] boot = new UnsignedByte[256];
-    private final UnsignedByte[] ram; // RAM size is read from cartridge! address 0x149
+    private UnsignedByte[] rom = new UnsignedByte[0x180_000];
+    //    private final UnsignedByte[] boot = new UnsignedByte[256];
+    private UnsignedByte[] ram; // RAM size is read from cartridge! address 0x149
 
     public ROM(String romPath) {
         // load rom
@@ -42,7 +47,7 @@ public class ROM {
         }
 
         // pick RAM size
-        switch(rom[0x149].get()) {
+        switch (rom[0x149].get()) {
             case 0, 1:
                 this.ram = null;
                 break;
@@ -65,17 +70,33 @@ public class ROM {
         }
     }
 
+    public void restoreState(SerializationWrapper serializationWrapper) {
+        ROM serializedROM = serializationWrapper.getMemory().getROM();
+        this.rom = serializedROM.rom;
+        this.ram = serializedROM.ram;
+
+        List<MBCListener> oldListeners = getMBC().getListeners();
+
+        this.mbc = serializationWrapper.getMBC();
+        for (MBCListener listener : oldListeners) {
+            this.mbc.addListener(listener);
+        }
+    }
+
     /**
      * Just for adding things as listeners to the MBC.
+     *
      * @return
      */
-    public MBC getMBC() {
+    public AbstractMBC getMBC() {
         return this.mbc;
     }
 
     /**
      * Accesses the ROM array with the input address redirected through the MBC.
+     *
      * @param address
+     *
      * @return
      * @see MBC
      */
@@ -85,8 +106,10 @@ public class ROM {
 
     /**
      * Writes to the MBC registers.
+     *
      * @param address
      * @param value
+     *
      * @see MBC
      */
     public void write(int address, int value) {
@@ -95,6 +118,7 @@ public class ROM {
 
     /**
      * Loads the ROM-file into the ROM-array.
+     *
      * @param romPath path to ROM-file as string, should be passed into program as the sole argument
      */
     private void loadROM(String romPath) {
@@ -112,16 +136,18 @@ public class ROM {
             }
 
         } catch (IOException e) {
-	    CuteLogger.log(Level.SEVERE, e.getMessage());
+            CuteLogger.log(Level.SEVERE, e.getMessage());
             System.err.println("Failed to load ROM: " + romPath);
             System.exit(-1);
-	}
+        }
     }
 
     /**
-     * Matches the number of banks in the ROM to the value at 0x148,
-     * part of the <a href=https://gbdev.io/pandocs/The_Cartridge_Header.html#0148--rom-size>cartridge header</a>.
+     * Matches the number of banks in the ROM to the value at 0x148, part of the <a
+     * href=https://gbdev.io/pandocs/The_Cartridge_Header.html#0148--rom-size>cartridge header</a>.
+     *
      * @param memoryValue value at 0x148
+     *
      * @return the number of banks in the ROM
      */
     private int romBankNumber(int memoryValue) {
@@ -137,9 +163,7 @@ public class ROM {
             case 0x54:
                 return 96;
             default:
-                CuteLogger.log(Level.SEVERE,
-                               "Unknown ROM bank number: " +
-                               Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
+                CuteLogger.log(Level.SEVERE, "Unknown ROM bank number: " + Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
                 System.exit(-1);
         }
 

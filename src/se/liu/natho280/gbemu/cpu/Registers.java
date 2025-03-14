@@ -2,19 +2,22 @@ package se.liu.natho280.gbemu.cpu;
 
 import se.liu.natho280.gbemu.debugger.RegisterListener;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * <p>There are 6 16-bit registers in the Game Boy, but four of them can also be accessed as if they were 8-bit
- * registers (AF, BC, DE, HL -> A, F, B, C, D, E, H, L). A is the accumulator, F is the flag register, and the rest
- * are simply registers.</p>
+ * registers (AF, BC, DE, HL -> A, F, B, C, D, E, H, L). A is the accumulator, F is the flag register, and the rest are simply
+ * registers.</p>
  *
  * <p>HL is often used as a pointer register, but this is not any kind of hard rule. SP is the
  * stack pointer, and PC is the program counter.</p
+ *
  * @see <a href=https://gbdev.io/pandocs/CPU_Registers_and_Flags.html>Pan Docs - CPU Registers and Flags</a>
  */
-public class Registers {
+public class Registers implements Serializable
+{
     // 6 of them, 16 bit
 
     // AF -> Accumulator & Flags
@@ -24,8 +27,8 @@ public class Registers {
     // SP -> stack pointer, can only get whole 16-bit number
     // PC -> program counter, can only get whole 16-bit number
 
-    private final UnsignedShort[] registers = new UnsignedShort[6];
-    private final List<RegisterListener> registerListeners = new ArrayList<>();
+    private UnsignedShort[] registers = new UnsignedShort[6];
+    private transient List<RegisterListener> registerListeners = new ArrayList<>();
 
     private static final int TOP_NIBBLES = 0xFF00;
     private static final int BOTTOM_NIBBLES = 0xFF;
@@ -40,6 +43,16 @@ public class Registers {
             // SP starts at 0xFFFE (end of high ram), rest of the registers are initialized to 0
             registers[i] = new UnsignedShort((i == 4 ? 0xFFFE : 0));
         }
+    }
+
+    public Registers copy() {
+        Registers registersCopy = new Registers();
+        for (int i = 0; i < registers.length; i++) {
+            registersCopy.registers[i] = this.registers[i];
+        }
+        registersCopy.registerListeners = new ArrayList<>(this.registerListeners);
+
+        return registersCopy;
     }
 
     public void addRegisterListener(RegisterListener l) {
@@ -61,8 +74,9 @@ public class Registers {
     }
 
     /**
-     * Adds a number to the program counter. Useful for skipping ahead in instructions when immediate numbers are read,
-     * or when relative jumps are made.
+     * Adds a number to the program counter. Useful for skipping ahead in instructions when immediate numbers are read, or when relative
+     * jumps are made.
+     *
      * @param value
      */
     public void addPC(int value) {
@@ -71,7 +85,8 @@ public class Registers {
 
     /**
      * Set a register to a value.
-     * @param reg register to set, by label
+     *
+     * @param reg   register to set, by label
      * @param value
      */
     public void set(Reg reg, int value) {
@@ -100,7 +115,9 @@ public class Registers {
 
     /**
      * Get value from a register by label.
+     *
      * @param reg register to get value from, by label
+     *
      * @return value stored in register
      */
     public int get(Reg reg) {
@@ -125,11 +142,12 @@ public class Registers {
     }
 
     /**
-     * Many instructions have the second nibble signify a source register for the instruction,
-     * e.g. 0x4X means load register X into register B (0x40-0x47) or C (0x48-0x4F).
-     * This method lets us quickly decode that second nibble into which register it signifies and grab the value in it,
-     * simplifying the big, core instruction-decoding switch statement.
+     * Many instructions have the second nibble signify a source register for the instruction, e.g. 0x4X means load register X into register
+     * B (0x40-0x47) or C (0x48-0x4F). This method lets us quickly decode that second nibble into which register it signifies and grab the
+     * value in it, simplifying the big, core instruction-decoding switch statement.
+     *
      * @param nibble The (usually second) nibble from the instruction, to be decoded into a register
+     *
      * @return the register the nibble corresponds to
      */
     public static Reg getSourceRegByNibble(int nibble) {
@@ -158,6 +176,7 @@ public class Registers {
 
     /**
      * Get the zero flag from the F, flag, register.
+     *
      * @return flag value
      */
     public int getZeroFlag() {
@@ -166,6 +185,7 @@ public class Registers {
 
     /**
      * Get the subtraction flag from the F, flag, register.
+     *
      * @return flag value
      */
     public int getSubtractionFlag() {
@@ -174,6 +194,7 @@ public class Registers {
 
     /**
      * Get the half-carry flag from the F, flag, register.
+     *
      * @return flag value
      */
     public int getHalfcarryFlag() {
@@ -182,6 +203,7 @@ public class Registers {
 
     /**
      * Get the carry flag from the F, flag, register.
+     *
      * @return flag value
      */
     public int getCarryFlag() {
@@ -201,6 +223,7 @@ public class Registers {
 
     /**
      * Set the zero flag to on (true) or off (false)
+     *
      * @param setZero
      */
     public void setZeroFlag(boolean setZero) {
@@ -210,6 +233,7 @@ public class Registers {
 
     /**
      * Set the subtraction flag to on (true) or off (false)
+     *
      * @param setSubtraction
      */
     public void setSubtractionFlag(boolean setSubtraction) {
@@ -218,6 +242,7 @@ public class Registers {
 
     /**
      * Set the half-carry flag to on (true) or off (false)
+     *
      * @param setHalfCarry
      */
     public void setHalfcarryFlag(boolean setHalfCarry) {
@@ -226,9 +251,14 @@ public class Registers {
 
     /**
      * Set the carry flag to on (true) or off (false)
+     *
      * @param setCarry
      */
     public void setCarryFlag(boolean setCarry) {
         setFlag(4, setCarry);
+    }
+
+    public void restoreState(final Registers stateRegisters) {
+        this.registers = stateRegisters.registers;
     }
 }

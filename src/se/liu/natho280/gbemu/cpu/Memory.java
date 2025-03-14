@@ -1,10 +1,12 @@
 package se.liu.natho280.gbemu.cpu;
 
+import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.debugger.MBCListener;
 import se.liu.natho280.gbemu.debugger.MemoryListener;
 import se.liu.natho280.gbemu.ppu.OAM;
 import se.liu.natho280.gbemu.rom.ROM;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +20,8 @@ import java.util.List;
  * <p>There are many hardware registers where reads and writes are intercepted and doing something different
  * than simply reading and writing to the array.</p>
  */
-public class Memory {
+public class Memory implements Serializable
+{
     // 0x0000 - 0x3FFF is the ROM (bank 00)
     // 0x4000 - 7FFF is the ROM (bank 1-NN)
     private ROM rom;
@@ -26,7 +29,7 @@ public class Memory {
     // each location in memory is a byte
     // addresses: 0x0000 through 0xFFFF
     // twice as big as needed since ROM isn't here, unsure if JVM will optimize that, keeping it for ease of use
-    private final UnsignedByte[] memory = new UnsignedByte[0x10000];
+    private UnsignedByte[] memory = new UnsignedByte[0x10000];
     private int buttonByte = 0xFF;
     private int dpadByte = 0xFF;
     private int dmaTransferLock = 0;
@@ -37,7 +40,7 @@ public class Memory {
     private int tima = 0;
     private int timaCycles = 0;
 
-    private List<MemoryListener> memoryListeners = new ArrayList<>();
+    private transient List<MemoryListener> memoryListeners = new ArrayList<>();
 
     public Memory(String romPath) {
         // create (& probably load) ROM with romPath string
@@ -48,6 +51,25 @@ public class Memory {
         for (int i = 0; i < memory.length; i++) {
             memory[i] = new UnsignedByte(0);
         }
+    }
+
+    public void restoreState(SerializationWrapper serializationWrapper) {
+        Memory wrapperMemory = serializationWrapper.getMemory();
+        this.memory = wrapperMemory.memory;
+        this.buttonByte = wrapperMemory.buttonByte;
+        this.dpadByte = wrapperMemory.dpadByte;
+        this.dmaTransferLock = wrapperMemory.dmaTransferLock;
+        this.vramLocked = wrapperMemory.vramLocked;
+        this.divTimer = wrapperMemory.divTimer;
+        this.flooredDivTimer = wrapperMemory.flooredDivTimer;
+        this.tima = wrapperMemory.tima;
+        this.timaCycles = wrapperMemory.timaCycles;
+
+        this.rom.restoreState(serializationWrapper);
+    }
+
+    public ROM getROM() {
+        return this.rom;
     }
 
     public void resetDivTimer() {
@@ -275,7 +297,7 @@ public class Memory {
     }
 
     public void addMBCListener(MBCListener l) {
-        rom.getMBC().addMBCListener(l);
+        rom.getMBC().addListener(l);
     }
 
     public void reInitializeMemory(String newROM) {
@@ -295,7 +317,7 @@ public class Memory {
 
         if (oldMBCListeners != null) {
             for (MBCListener l : oldMBCListeners) {
-                this.rom.getMBC().addMBCListener(l);
+                this.rom.getMBC().addListener(l);
             }
         }
     }

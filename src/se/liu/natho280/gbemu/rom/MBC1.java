@@ -2,9 +2,9 @@ package se.liu.natho280.gbemu.rom;
 
 import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.debugger.MBCListener;
+import se.liu.natho280.gbemu.serialization.MBCType;
+import se.liu.natho280.gbemu.serialization.SerializableMBC;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -12,7 +12,7 @@ import java.util.logging.Level;
  * NOTE: This class is halfway implemented, as such there are warnings!
  * @see <a href=https://gbdev.io/pandocs/MBC1.html>Pan Docs - MBC1</a>
  */
-public class MBC1 implements MBC {
+public class MBC1 extends AbstractMBC {
     private static final int ADDRESS_OFFSET = 0x4000;
     private int numberOfBanks;
     private int romBank = 0;
@@ -21,11 +21,18 @@ public class MBC1 implements MBC {
     private int ramBank = 0;
     private boolean advancedBankingMode = false;
 
-    private List<MBCListener> mbcListeners = new ArrayList<>();
-
     public MBC1(int numberOfBanks) {
         this.numberOfBanks = numberOfBanks;
         CuteLogger.log(Level.INFO, "We have " + numberOfBanks + " banks in this rom");
+    }
+
+    public MBC1(SerializableMBC mbc) {
+        this.numberOfBanks = mbc.mbcThings[0];
+        this.romBank = mbc.mbcThings[1];
+        this.highBank = mbc.mbcThings[2];
+        this.ramEnabled = mbc.mbcThings[3] == 1;
+        this.ramBank = mbc.mbcThings[4];
+        this.advancedBankingMode = mbc.mbcThings[5] == 1;
     }
 
     @Override
@@ -42,6 +49,21 @@ public class MBC1 implements MBC {
         }
         // else something went wrong
         throw new IllegalArgumentException("Invalid address: " + address);
+    }
+
+    @Override
+    public SerializableMBC makeSerializable() {
+        // prepare int array to save information
+        int[] mbcThings = new int[6];
+        mbcThings[0] = numberOfBanks;
+        mbcThings[1] = romBank;
+        mbcThings[2] = highBank;
+        mbcThings[3] = ramEnabled ? 1 : 0;
+        mbcThings[4] = ramBank;
+        mbcThings[5] = advancedBankingMode ? 1 : 0;
+        SerializableMBC smbc = new SerializableMBC(MBCType.MBC1, mbcThings);
+
+        return smbc;
     }
 
     @Override
@@ -71,14 +93,5 @@ public class MBC1 implements MBC {
         for (MBCListener listener : mbcListeners) {
             listener.bankSwitched();
         }
-    }
-
-    public void addMBCListener(MBCListener l) {
-        this.mbcListeners.add(l);
-    }
-
-    @Override
-    public List<MBCListener> getListeners() {
-        return new ArrayList<>(this.mbcListeners);
     }
 }

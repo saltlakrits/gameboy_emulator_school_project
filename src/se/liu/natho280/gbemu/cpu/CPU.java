@@ -45,6 +45,10 @@ public class CPU {
         setUpBoot();
     }
 
+    public Registers getRegisters() {
+        return this.regs.copy();
+    }
+
     public void pushPC() {
         // push PC to stack
         regs.decSP();

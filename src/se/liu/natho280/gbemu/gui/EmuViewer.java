@@ -1,8 +1,10 @@
 package se.liu.natho280.gbemu.gui;
 
+import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.GameButton;
 import se.liu.natho280.gbemu.cpu.Memory;
+import se.liu.natho280.gbemu.cpu.Registers;
 import se.liu.natho280.gbemu.debugger.MemoryViewer;
 import se.liu.natho280.gbemu.ppu.Display;
 
@@ -43,6 +45,23 @@ public class EmuViewer {
         this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
         this.memoryViewer.redisassemble();
         memoryViewer.setEmulatorPaused(false); // done reinitializing -> unpause
+    }
+
+    private void saveState(String statePath) {
+        memoryViewer.setEmulatorPaused(true);
+        SerializationWrapper sw = new SerializationWrapper(this.cpu.getRegisters(), this.memory);
+        sw.serialize(statePath);
+        memoryViewer.setEmulatorPaused(false);
+    }
+
+    private void loadState(String statePath) {
+        memoryViewer.setEmulatorPaused(true);
+        SerializationWrapper serializationWrapper = new SerializationWrapper(statePath);
+        Registers stateRegisters = serializationWrapper.getRegisters();
+
+        this.memory.restoreState(serializationWrapper);
+        this.cpu.getRegisters().restoreState(stateRegisters);
+        memoryViewer.setEmulatorPaused(false);
     }
 
     public void show() {
@@ -105,8 +124,6 @@ public class EmuViewer {
     }
 
     private void makePopupMenu() {
-        JMenuItem openROM = new JMenuItem("Load ROM");
-
         frame.addMouseListener(new MouseListener() {
 
             @Override public void mousePressed(final MouseEvent e) {
@@ -122,19 +139,51 @@ public class EmuViewer {
             @Override public void mouseExited(final MouseEvent e) {}
         });
 
+        JMenuItem openROM = new JMenuItem("Load ROM");
         openROM.addActionListener(new LoadROMAction());
         popupMenu.add(openROM);
+
+        JMenuItem saveState = new JMenuItem("Save State");
+        saveState.addActionListener(new SaveStateAction());
+        popupMenu.add(saveState);
+
+        JMenuItem loadState = new JMenuItem("Load State");
+        loadState.addActionListener(new LoadStateAction());
+        popupMenu.add(loadState);
     }
 
     private class LoadROMAction extends AbstractAction {
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
 	    FileDialog fd = new FileDialog(frame, "Load ROM", FileDialog.LOAD);
             fd.setVisible(true);
             String newROMPath = fd.getDirectory() + fd.getFile();
 
             changeROM(newROMPath);
 	}
+    }
+
+    private class SaveStateAction extends AbstractAction {
+
+        @Override public void actionPerformed(final ActionEvent e) {
+            FileDialog fd = new FileDialog(frame, "Save state to file...", FileDialog.SAVE);
+            fd.setVisible(true);
+            String savePath = fd.getDirectory() + fd.getFile();
+
+            // do something with the path, NYI
+            saveState(savePath);
+        }
+    }
+
+    private class LoadStateAction extends AbstractAction {
+        @Override public void actionPerformed(final ActionEvent e) {
+            FileDialog fd = new FileDialog(frame, "Load state from file...", FileDialog.LOAD);
+            fd.setVisible(true);
+            String loadPath = fd.getDirectory() + fd.getFile();
+
+            // do something with the path, NYI
+            loadState(loadPath);
+        }
     }
 
     private class PressAction extends AbstractAction {
