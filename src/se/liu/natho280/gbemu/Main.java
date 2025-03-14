@@ -74,7 +74,6 @@ public class Main {
 
                 // run all the dots (T-cycles) for a single frame
                 while (dots < DOTS_PER_FRAME) {
-
                     synchronized (cpu.lock()) {
                         int cycles;
 
@@ -122,7 +121,7 @@ public class Main {
      */
     public static void ppuCycle(int dots, PPU ppu, Memory memory) {
         int ly = dots / 456; // LY, y coordinate
-        int modDots = dots % 456; // 339 dots per scanline
+        int modDots = dots % 456; // 456 dots per scanline
 
         if (ly != memory.unconditionalRead(0xFF44)) {
             // if LY changed, we want to reset the flags so the different parts of the scanline is drawn again

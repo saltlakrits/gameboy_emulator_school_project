@@ -51,11 +51,22 @@ public class EmuViewer {
        }
     }
 
+    private void loadState(String statePath) {
+        synchronized (cpu.lock()) {
+            SerializationWrapper serializationWrapper = new SerializationWrapper(statePath);
+
+            this.memory.restoreState(serializationWrapper);
+            this.cpu.restoreState(serializationWrapper);
+
+//            logRegs(this.cpu.getRegisters());
+        }
+    }
+
     private void saveState(String statePath) {
         synchronized (cpu.lock()) {
             SerializationWrapper sw = new SerializationWrapper(this.cpu, this.memory);
             sw.serialize(statePath);
-            logRegs(this.cpu.getRegisters());
+//            logRegs(this.cpu.getRegisters());
         }
     }
 
@@ -71,17 +82,6 @@ public class EmuViewer {
         sb.append("\nPC: $").append(hex.toHexDigits((short)regs.get(Reg.PC)));
 
         CuteLogger.log(Level.INFO, sb.toString());
-    }
-
-    private void loadState(String statePath) {
-        synchronized (cpu.lock()) {
-            SerializationWrapper serializationWrapper = new SerializationWrapper(statePath);
-
-            this.memory.restoreState(serializationWrapper);
-            this.cpu.restoreState(serializationWrapper);
-
-            logRegs(this.cpu.getRegisters());
-        }
     }
 
     public void show() {
