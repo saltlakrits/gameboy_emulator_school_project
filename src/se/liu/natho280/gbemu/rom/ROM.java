@@ -1,6 +1,7 @@
 package se.liu.natho280.gbemu.rom;
 
 import se.liu.natho280.gbemu.CuteLogger;
+import se.liu.natho280.gbemu.serialization.SerializableMBC;
 import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.cpu.UnsignedByte;
 import se.liu.natho280.gbemu.debugger.MBCListener;
@@ -16,8 +17,7 @@ import java.util.logging.Level;
  * Handles the game ROM. Will set the MBC (memory bank controller) appropriately, as long as it is a supported MBC (as of writing, only
  * no-MBC, MBC0) and MBC1 are supported).
  */
-public class ROM implements Serializable
-{
+public class ROM implements Serializable {
     // this will be 0x4000 * N
     // the first
     private static final int RAM_BANK_SIZE = 0x400;
@@ -70,12 +70,14 @@ public class ROM implements Serializable
         }
     }
 
+    public ROM() {}
+
     public void restoreState(SerializationWrapper serializationWrapper) {
         ROM serializedROM = serializationWrapper.getMemory().getROM();
         this.rom = serializedROM.rom;
         this.ram = serializedROM.ram;
 
-        List<MBCListener> oldListeners = getMBC().getListeners();
+        List<MBCListener> oldListeners = this.mbc.getListeners();
         // TODO need to notify listeners for disassembly, memory, etc
 
         this.mbc = serializationWrapper.getMBC();
@@ -89,8 +91,16 @@ public class ROM implements Serializable
      *
      * @return
      */
-    public AbstractMBC getMBC() {
-        return this.mbc;
+    public SerializableMBC getSerializableMBC() {
+        return this.mbc.makeSerializable();
+    }
+
+    public void addMBCListener(MBCListener l) {
+        this.mbc.addListener(l);
+    }
+
+    public List<MBCListener> getMBCListeners() {
+        return this.mbc.getListeners();
     }
 
     /**
@@ -169,5 +179,17 @@ public class ROM implements Serializable
         }
 
         return 0; // unreachable
+    }
+
+    /**
+     * @return a copy of the ROM object
+     */
+    public ROM copy() {
+        ROM copyROM = new ROM();
+        copyROM.rom = this.rom.clone();
+        copyROM.ram = this.ram == null ? null : this.ram.clone();
+        copyROM.mbc = this.mbc == null ? null : this.mbc.copy();
+
+        return copyROM;
     }
 }

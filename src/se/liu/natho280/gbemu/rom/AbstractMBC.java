@@ -28,4 +28,6 @@ public abstract class AbstractMBC implements Serializable
     abstract public int redirectedAddress(int address);
 
     abstract public SerializableMBC makeSerializable();
+
+    abstract public AbstractMBC copy();
 }

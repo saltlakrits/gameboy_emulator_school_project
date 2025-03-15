@@ -1,5 +1,6 @@
 package se.liu.natho280.gbemu.cpu;
 
+import se.liu.natho280.gbemu.serialization.SerializableMBC;
 import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.debugger.MBCListener;
 import se.liu.natho280.gbemu.debugger.MemoryListener;
@@ -68,8 +69,12 @@ public class Memory implements Serializable
         this.rom.restoreState(serializationWrapper);
     }
 
+    public SerializableMBC getSerializableMBC() {
+        return this.rom.getSerializableMBC();
+    }
+
     public ROM getROM() {
-        return this.rom;
+        return this.rom.copy();
     }
 
     public void resetDivTimer() {
@@ -297,12 +302,12 @@ public class Memory implements Serializable
     }
 
     public void addMBCListener(MBCListener l) {
-        rom.getMBC().addListener(l);
+        rom.addMBCListener(l);
     }
 
     public void reInitializeMemory(String newROM) {
         // zero out the memory
-        for (int i = 0; i < 0x10000; i++) {
+        for (int i = 0; i < memory.length; i++) {
             unconditionalWrite(i, 0);
         }
 
@@ -311,13 +316,13 @@ public class Memory implements Serializable
         timaCycles = 0;
 
         // drop ROM, reinit
-        List<MBCListener> oldMBCListeners = rom.getMBC().getListeners();
+        List<MBCListener> oldMBCListeners = rom.getMBCListeners();
 
         this.rom = new ROM(newROM);
 
         if (oldMBCListeners != null) {
             for (MBCListener l : oldMBCListeners) {
-                this.rom.getMBC().addListener(l);
+                this.rom.addMBCListener(l);
             }
         }
     }
