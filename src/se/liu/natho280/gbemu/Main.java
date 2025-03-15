@@ -96,6 +96,8 @@ public class Main {
                     }
                 }
 
+                memoryViewer.updateMemory();
+
                 while (frameTime > System.currentTimeMillis()) {
                     // wait until new frame -- this is what limits the emulator speed and
                     // should be where the program spends the majority of it's runtime

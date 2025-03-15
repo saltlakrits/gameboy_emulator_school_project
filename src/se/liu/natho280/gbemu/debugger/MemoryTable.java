@@ -13,7 +13,6 @@ import java.awt.*;
  */
 public class MemoryTable implements MemoryListener {
     private Memory memory;
-    private JTable memoryTable = null;
     private DefaultTableModel tableModel = null;
     private JScrollPane memoryTableScrollPane = null;
 
@@ -53,11 +52,11 @@ public class MemoryTable implements MemoryListener {
         }
 
         // Create Table
-        this.memoryTable = new JTable(tableModel);
+	JTable memoryTable = new JTable(tableModel);
         // remove default keybinding, our table isn't editable anyway!
-        this.memoryTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F2"), "none");
+        memoryTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F2"), "none");
 
-        this.memoryTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        memoryTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
         memoryTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         TableColumnModel colMod = memoryTable.getColumnModel();
         colMod.getColumn(0).setResizable(false);
@@ -81,6 +80,12 @@ public class MemoryTable implements MemoryListener {
         tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(index)), index / 16, (index % 16) + 1);
         // memoryTable.clearSelection();
         // memoryTable.changeSelection(index / 16, (index % 16) + 1, false, false);
+    }
+
+    public void updateTimersInDebugger() {
+        // FF04 == div, FF05 = tima
+        tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(0xFF04)), 0xFF04 / 16, (0xFF04 % 16) + 1);
+        tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(0xFF05)), 0xFF05 / 16, (0xFF05 % 16) + 1);
     }
 
     /**

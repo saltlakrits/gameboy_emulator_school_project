@@ -127,6 +127,11 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         disassemblyTable.highlightRow(registerTable.getPC());
     }
 
+    public void updateMemory() {
+        if (!frame.isVisible()) return;
+        memoryTable.updateTimersInDebugger();
+    }
+
     public void bankSwitched() {
         this.bankSwitched = true;
     }
