@@ -4,6 +4,9 @@ import se.liu.natho280.gbemu.cpu.Memory;
 import se.liu.natho280.gbemu.cpu.Reg;
 import se.liu.natho280.gbemu.cpu.Registers;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,7 +16,6 @@ import java.awt.event.ActionEvent;
  */
 public class MemoryViewer implements MBCListener, RegisterListener {
 
-    private JFrame emuFrame = null;
     private final JFrame frame = new JFrame("Memory Viewer");
     private final MemoryTable memoryTable;
     private final DisassemblyTable disassemblyTable;
@@ -23,6 +25,8 @@ public class MemoryViewer implements MBCListener, RegisterListener {
     private boolean shouldStep = false;
 
     private boolean bankSwitched = false;
+
+    private final List<DebuggerListener> debuggerListeners = new ArrayList<>();
 
     public MemoryViewer(Memory memory, Registers regs, boolean showDebugger) {
         memory.addMBCListener(this);
@@ -39,8 +43,14 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         frame.setVisible(showDebugger);
     }
 
-    public void setEmuFrame(JFrame frame) {
-        this.emuFrame = frame;
+    public void addDebuggerListener(DebuggerListener listener) {
+        this.debuggerListeners.add(listener);
+    }
+
+    private void notifyDebuggerListeners() {
+        for (DebuggerListener listener : debuggerListeners) {
+            listener.debuggerToggled();
+        }
     }
 
     public void redisassemble() {
@@ -132,12 +142,7 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         @Override
         public void actionPerformed(final ActionEvent e) {
             toggleDebugging();
-            if (getEmulatorPaused()) {
-                emuFrame.setTitle("gbEmu (paused)");
-                postStepUpdate();
-            } else {
-                emuFrame.setTitle("gbEmu");
-            }
+            notifyDebuggerListeners();
         }
     }
 

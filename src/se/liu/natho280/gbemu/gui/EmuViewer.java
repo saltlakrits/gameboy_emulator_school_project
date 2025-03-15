@@ -2,6 +2,7 @@ package se.liu.natho280.gbemu.gui;
 
 import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.cpu.Reg;
+import se.liu.natho280.gbemu.debugger.DebuggerListener;
 import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.GameButton;
@@ -23,7 +24,7 @@ import java.util.logging.Level;
 /**
  * The frontend window that displays the emulator screen and receives the input from the user.
  */
-public class EmuViewer {
+public class EmuViewer implements DebuggerListener {
     // Frontend for the emulator
 
     private CPU cpu;
@@ -38,6 +39,7 @@ public class EmuViewer {
         this.memory = memory;
         this.display = display;
         this.memoryViewer = memoryViewer;
+        memoryViewer.addDebuggerListener(this);
     }
 
     /**
@@ -51,10 +53,6 @@ public class EmuViewer {
            this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
            this.memoryViewer.redisassemble();
        }
-    }
-
-    public JFrame getFrame() {
-        return frame;
     }
 
     private void loadState(String statePath) {
@@ -153,6 +151,18 @@ public class EmuViewer {
         act.put("b_button_up", new ReleaseAction(GameButton.B));
         act.put("start_button_up", new ReleaseAction(GameButton.START));
         act.put("select_button_up", new ReleaseAction(GameButton.SELECT));
+    }
+
+    /**
+     * Interface implementation
+     */
+    public void debuggerToggled() {
+        if (memoryViewer.getEmulatorPaused()) {
+            frame.setTitle("gbEmu (paused)");
+            memoryViewer.postStepUpdate();
+        } else {
+            frame.setTitle("gbEmu");
+        }
     }
 
     private void makePopupMenu() {
@@ -333,12 +343,7 @@ public class EmuViewer {
         @Override
         public void actionPerformed(final ActionEvent e) {
             memoryViewer.toggleDebugging();
-            if (memoryViewer.getEmulatorPaused()) {
-                frame.setTitle("gbEmu (paused)");
-                memoryViewer.postStepUpdate();
-            } else {
-                frame.setTitle("gbEmu");
-            }
+            debuggerToggled();
         }
     }
 
