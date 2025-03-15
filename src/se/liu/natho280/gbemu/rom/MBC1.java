@@ -67,6 +67,17 @@ public class MBC1 extends AbstractMBC {
     }
 
     @Override
+    public AbstractMBC copy() {
+        MBC1 mbcCopy = new MBC1(this.numberOfBanks);
+        mbcCopy.romBank = this.romBank;
+        mbcCopy.highBank = this.highBank;
+        mbcCopy.ramEnabled = this.ramEnabled;
+        mbcCopy.ramBank = this.ramBank;
+        mbcCopy.advancedBankingMode = this.advancedBankingMode;
+        return mbcCopy;
+    }
+
+    @Override
     public void write(int address, int value) {
         if (address <= 0x1FFF) {
             // RAM enable register

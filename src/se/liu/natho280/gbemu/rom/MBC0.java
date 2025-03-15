@@ -23,4 +23,8 @@ public class MBC0 extends AbstractMBC {
         return smbc;
     }
 
+    @Override public AbstractMBC copy() {
+        return new MBC0();
+    }
+
 }

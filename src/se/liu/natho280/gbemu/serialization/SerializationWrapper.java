@@ -24,7 +24,7 @@ public class SerializationWrapper {
     public SerializationWrapper(CPU cpu, Memory memory) {
 	this.cpu = cpu;
 	this.memory = memory;
-	this.smbc = this.memory.getROM().getMBC().makeSerializable();
+	this.smbc = this.memory.getSerializableMBC();
     }
 
     public SerializationWrapper(String loadPath) {
