@@ -20,7 +20,8 @@ import java.util.logging.Level;
 public class ROM implements Serializable {
     // this will be 0x4000 * N
     // the first
-    private static final int RAM_BANK_SIZE = 0x400;
+
+    private static final int RAM_BANK_SIZE = 0x2000; // 8 KiB
     private transient AbstractMBC mbc = null; // MBC is read from 0x147
 
     // ROM size is read from 0x148, but we can just allocate the maximum possible (1.5 MiB)
@@ -29,24 +30,16 @@ public class ROM implements Serializable {
     private UnsignedByte[] ram; // RAM size is read from cartridge! address 0x149
 
     public ROM(String romPath) {
+
         // load rom
         loadROM(romPath);
 
         // choose MBC
-
-        switch (rom[0x147].get()) {
-            case 0:
-                this.mbc = new MBC0();
-                break;
-            case 0x1:
-                this.mbc = new MBC1(romBankNumber(rom[0x148].get()));
-                break;
-            default:
-                CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
-                System.exit(-1);
-        }
+        selectMBC();
 
         // pick RAM size
+
+        CuteLogger.log(Level.INFO, "Ram size in header: " + rom[0x149].get());
         switch (rom[0x149].get()) {
             case 0, 1:
                 this.ram = null;
@@ -66,6 +59,31 @@ public class ROM implements Serializable {
             default:
                 this.ram = null; // doesn't matter, exiting
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x149].get());
+                System.exit(-1);
+        }
+
+        // If no save file found, but there is ram:
+        if (ram != null) {
+            for (int i = 0; i < ram.length; i++) {
+                // initialize RAM
+                ram[i] = new UnsignedByte(0);
+            }
+            // else load save file into ram:
+        }
+    }
+
+    private void selectMBC() {
+        switch (rom[0x147].get()) {
+            case 0:
+                CuteLogger.log(Level.INFO, "Picked MBC0.");
+                this.mbc = new MBC0();
+                break;
+            case 1, 2, 3:
+                CuteLogger.log(Level.INFO, "Picked MBC1.");
+                this.mbc = new MBC1(romBankNumber(rom[0x148].get()));
+                break;
+            default:
+                CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
                 System.exit(-1);
         }
     }
@@ -109,9 +127,13 @@ public class ROM implements Serializable {
      * @param address
      *
      * @return
-     * @see MBC
+     * @see AbstractMBC
      */
     public int get(int address) {
+        if (address >= 0xA000 && address <= 0xBFFF) {
+            if (!mbc.getRamEnabled()) return 0xFF;
+            return ram[mbc.redirectedAddress(address)].get();
+        }
         return rom[mbc.redirectedAddress(address)].get();
     }
 
@@ -124,6 +146,9 @@ public class ROM implements Serializable {
      * @see MBC
      */
     public void write(int address, int value) {
+        if (address >= 0xA000 && address <= 0xBFFF && ram != null) {
+            ram[mbc.redirectedAddress(address)].set(value);
+        }
         mbc.write(address, value);
     }
 
@@ -135,7 +160,8 @@ public class ROM implements Serializable {
     private void loadROM(String romPath) {
 
         try (FileInputStream fis = new FileInputStream(romPath)) {
-            System.out.println(romPath);
+//            System.out.println(romPath);
+            CuteLogger.log(Level.INFO, "ROM: " + romPath);
             BufferedInputStream bis = new BufferedInputStream(fis);
 
             int readByte;
@@ -191,5 +217,9 @@ public class ROM implements Serializable {
         copyROM.mbc = this.mbc == null ? null : this.mbc.copy();
 
         return copyROM;
+    }
+
+    public void reset() {
+        selectMBC();
     }
 }

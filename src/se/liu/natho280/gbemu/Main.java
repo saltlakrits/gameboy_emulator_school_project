@@ -27,7 +27,7 @@ public class Main {
 
         FlatLightLaf.setup();
 
-        System.out.println("Hello, game boy!");
+        // System.out.println("Hello, game boy!");
 
         if (args.length != 1 && args.length != 2) {
             System.out.println("You need to specify a ROM file, in one word, and nothing else, optionally with '-d' to enable showDebuggerAtStartup.");
@@ -87,6 +87,12 @@ public class Main {
                             memoryViewer.postStepUpdate();
                         } else if (!memoryViewer.getEmulatorPaused()) {
                             cycles = cpuCycle(cpu);
+                            // TODO Check that it finds everything!
+                            memoryViewer.checkBreakpoints(cpu.getPC());
+//                            memoryViewer.checkBreakpoints(cpu.getPC() - 1);
+//                            memoryViewer.checkBreakpoints(cpu.getPC() + 1);
+//                            memoryViewer.checkBreakpoints(cpu.getPC() + 2);
+//                            memoryViewer.checkBreakpoints(cpu.getPC() + 2);
                         } else {
                             cycles = 0;
                         }
@@ -137,7 +143,8 @@ public class Main {
 
         // the FIRST time we get to vblank, ppu.flags will be non-nil, so we use that to detect reaching vblank
         // we should set vblank interrupt and STAT
-        if (ly == 143 && ppu.anyFlag()) {
+        // TODO Rename or clarify checkFlags
+        if (ly == 143 && ppu.checkFlags() && !ppu.getFlag(3)) {
             // vblank interrupt!
             ppu.vblank();
         } else if (ly > 143) {

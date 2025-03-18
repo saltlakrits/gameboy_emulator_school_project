@@ -28,6 +28,8 @@ public class MemoryViewer implements MBCListener, RegisterListener {
 
     private final List<DebuggerListener> debuggerListeners = new ArrayList<>();
 
+    private final List<Integer> breakpoints = new ArrayList<>();
+
     public MemoryViewer(Memory memory, Registers regs, boolean showDebugger) {
         memory.addMBCListener(this);
         regs.addRegisterListener(this);
@@ -41,6 +43,28 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         create();
 
         frame.setVisible(showDebugger);
+    }
+
+    public void addBreakpoint(int address) {
+        breakpoints.add(address);
+    }
+
+    public void removeBreakpoint(int address) {
+        breakpoints.remove(address);
+    }
+
+    public void removeBreakpointIndex(int index) {
+        breakpoints.remove(index);
+    }
+
+    public List<Integer> getBreakpoints() {
+        return new ArrayList<>(breakpoints);
+    }
+
+    public void checkBreakpoints(int address) {
+        if (breakpoints.contains(address)) {
+            new ToggleDebuggingAction().actionPerformed(null);
+        }
     }
 
     public void addDebuggerListener(DebuggerListener listener) {

@@ -55,6 +55,14 @@ public class EmuViewer implements DebuggerListener {
        }
     }
 
+    private void resetROM() {
+        synchronized (cpu.lock()) {
+            this.memory.reInitializeMemory(); // reinitialize memory (zero it out), inside it reInit ROM as well?
+            this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
+            this.memoryViewer.redisassemble();
+        }
+    }
+
     private void loadState(String statePath) {
         synchronized (cpu.lock()) {
             SerializationWrapper serializationWrapper = new SerializationWrapper(statePath);
@@ -126,6 +134,12 @@ public class EmuViewer implements DebuggerListener {
         in.put(KeyStroke.getKeyStroke("F5"), "save_state");
         in.put(KeyStroke.getKeyStroke("F6"), "load_state");
 
+        in.put(KeyStroke.getKeyStroke("F9"), "add_breakpoint");
+        in.put(KeyStroke.getKeyStroke("F10"), "remove_breakpoint");
+
+        in.put(KeyStroke.getKeyStroke("F12"), "reset");
+
+
         final ActionMap act = pane.getActionMap();
         act.put("left_down", new PressAction(GameButton.LEFT));
         act.put("right_down", new PressAction(GameButton.RIGHT));
@@ -142,6 +156,9 @@ public class EmuViewer implements DebuggerListener {
         act.put("load_rom", new LoadROMAction());
         act.put("save_state", new SaveStateAction());
         act.put("load_state", new LoadStateAction());
+        act.put("add_breakpoint", new AddBreakpointAction());
+        act.put("remove_breakpoint", new RemoveBreakpointAction());
+        act.put("reset", new ResetAction());
 
         act.put("left_up", new ReleaseAction(GameButton.LEFT));
         act.put("right_up", new ReleaseAction(GameButton.RIGHT));
@@ -352,6 +369,53 @@ public class EmuViewer implements DebuggerListener {
         public void actionPerformed(final ActionEvent e) {
             if (!memoryViewer.getEmulatorPaused()) new ToggleDebuggingAction().actionPerformed(e);
             memoryViewer.step();
+        }
+    }
+
+    private class AddBreakpointAction extends AbstractAction
+    {
+        @Override public void actionPerformed(final ActionEvent e) {
+            StringBuilder sb = new StringBuilder();
+            for (int breakpointAddress : memoryViewer.getBreakpoints()) {
+                sb.append(memoryViewer.getBreakpoints().indexOf(breakpointAddress)).append(": ").append("$").append(Integer.toHexString(breakpointAddress).toUpperCase()).append("\n");
+            }
+            sb.append("\nAddress for new breakpoint: ");
+
+            int newBreakpointAddress = 0;
+            // TODO Clean this up
+            try {
+                newBreakpointAddress = Integer.parseInt(JOptionPane.showInputDialog(frame, sb.toString()), 16);
+            } catch (NumberFormatException ex) {
+                System.err.println(ex.getMessage());
+                return;
+            }
+            memoryViewer.addBreakpoint(newBreakpointAddress);
+        }
+    }
+
+    private class RemoveBreakpointAction extends AbstractAction
+    {
+        @Override public void actionPerformed(final ActionEvent e) {
+            StringBuilder sb = new StringBuilder();
+            for (int breakpointAddress : memoryViewer.getBreakpoints()) {
+                sb.append(memoryViewer.getBreakpoints().indexOf(breakpointAddress)).append(": ").append("$").append(Integer.toHexString(breakpointAddress).toUpperCase()).append("\n");
+            }
+            sb.append("\nIndex to remove: ");
+            int index = 0;
+            // TODO Clean this up
+            try {
+                index = Integer.valueOf(JOptionPane.showInputDialog(frame, sb.toString(), memoryViewer.getBreakpoints().size() - 1));
+            } catch (NumberFormatException ex) {
+                return;
+            }
+            memoryViewer.removeBreakpointIndex(index);
+        }
+    }
+
+    private class ResetAction extends AbstractAction {
+        @Override public void actionPerformed(final ActionEvent e) {
+            resetROM();
+            if (!memoryViewer.getEmulatorPaused()) new ToggleDebuggingAction().actionPerformed(e);
         }
     }
 }

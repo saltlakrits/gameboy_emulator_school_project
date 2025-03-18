@@ -30,4 +30,6 @@ public abstract class AbstractMBC implements Serializable
     abstract public SerializableMBC makeSerializable();
 
     abstract public AbstractMBC copy();
+
+    abstract public boolean getRamEnabled();
 }

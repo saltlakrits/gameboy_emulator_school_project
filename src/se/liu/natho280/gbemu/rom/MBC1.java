@@ -10,6 +10,9 @@ import java.util.logging.Level;
 /**
  * MBC1, the simplest MBC. See the link for information.
  * NOTE: This class is halfway implemented, as such there are warnings!
+ *
+ * Battery (saving) and RAM functionality is baked into this class!
+ *
  * @see <a href=https://gbdev.io/pandocs/MBC1.html>Pan Docs - MBC1</a>
  */
 public class MBC1 extends AbstractMBC {
@@ -47,8 +50,20 @@ public class MBC1 extends AbstractMBC {
             return address + (((romBank == 0 ? 1 : romBank) - 1) * ADDRESS_OFFSET);
 //            return ((address & 0x3FFF) | ((romBank == 0 ? 1 : romBank) << 14));
         }
+        if (address >= 0xA000 && address <= 0xBFFF) {
+            // do stuff to the ram address!
+            // FIXME principally correct, may be off by one..?
+            if ((address - 0xA000 + (ramBank * 0x2000)) >= 0x2000) {
+                CuteLogger.log(Level.SEVERE, Integer.toHexString((address - 0xA000 + (ramBank * 0x2000))).toUpperCase() + " is too big");
+            }
+            return address - 0xA000 + (ramBank * 0x2000);
+        }
         // else something went wrong
         throw new IllegalArgumentException("Invalid address: " + address);
+    }
+
+    public boolean getRamEnabled() {
+        return ramEnabled;
     }
 
     @Override
@@ -81,7 +96,7 @@ public class MBC1 extends AbstractMBC {
     public void write(int address, int value) {
         if (address <= 0x1FFF) {
             // RAM enable register
-            System.out.println("Writing 0x" + Integer.toHexString(address).toUpperCase() + " to RAM enable");
+//            System.out.println("Writing 0x" + Integer.toHexString(address).toUpperCase() + " to RAM enable");
             if (value == 0xA) {
                 ramEnabled = true;
             } else {
@@ -93,7 +108,8 @@ public class MBC1 extends AbstractMBC {
             this.romBank = (value & 0x1F) % numberOfBanks;
         } else if (address <= 0x5FFF) {
             // RAM bank number --OR-- upper bits of ROM bank number
-            this.highBank = value & 0x3;
+            if (numberOfBanks >= 64) this.highBank = value & 0x3;
+            else this.ramBank = (value & 0x3);
             //System.out.println("Wrote " + Integer.toHexString(value).toUpperCase() + " to upper bank thing");
         } else {
             // Banking mode select

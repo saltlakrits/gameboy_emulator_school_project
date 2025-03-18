@@ -27,4 +27,8 @@ public class MBC0 extends AbstractMBC {
         return new MBC0();
     }
 
+    @Override public boolean getRamEnabled() {
+        return false;
+    }
+
 }

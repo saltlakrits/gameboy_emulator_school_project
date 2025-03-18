@@ -76,11 +76,11 @@ public class PPU {
     }
 
     /**
-     * Checks whether any flags are set.
-     * @return true if any, else false
+     * Checks whether all flags are set.
+     * @return true if all bits are set, else false
      */
-    public boolean anyFlag() {
-        return (flags != 0);
+    public boolean checkFlags() {
+        return 0b111 == flags;
     }
 
     /**
@@ -233,7 +233,7 @@ public class PPU {
      */
     public void mode3(int ly) {
         // this is to avoid redrawing the same scanline
-        if (ly + 1 == lastScanline) return;
+//        if (ly + 1 == lastScanline) return;
 
         handleStatRegister(StatReg.THREE);
 
@@ -346,8 +346,8 @@ public class PPU {
         }
         backgroundFIFO.clear();
         spriteFIFO.clear();
-        lastScanline++;
-        if (ly == 143) setFlag(1);
+//        lastScanline++;
+        setFlag(1);
     }
 
     public void hblank() {
@@ -359,7 +359,8 @@ public class PPU {
     public void vblank() {
         setInterruptBit(Interrupt.VBLANK, true);
         handleStatRegister(StatReg.ONE);
-        lastScanline = 0;
+//        lastScanline = 0;
+        setFlag(3);
     }
 
     private int matchPixelColor(int pixelColor, int palette) {

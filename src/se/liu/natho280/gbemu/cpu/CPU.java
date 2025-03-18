@@ -14,8 +14,8 @@ import java.util.logging.Level;
 public class CPU implements Serializable {
     // this is the emulator class, that will have the logic one step above the hardware (kind of)
     // this class is what ultimately utilizes the smaller hardware components to fetch, decode and execute instructions.
-    private transient Memory memory;
-    private Registers regs; // FIXME We are doing this separately, fix!
+    private transient Memory memory; // FIXME We are doing this separately, fix!
+    private Registers regs;
     private int cycles = 0;
     // interrupt master enable flag, true -> we will call interrupt handlers
     private boolean interruptsEnabled = false;
@@ -67,6 +67,10 @@ public class CPU implements Serializable {
 //        for (RegisterListener listener : oldListeners) {
 //            this.regs.addRegisterListener(listener);
 //        }
+    }
+
+    public int getPC() {
+        return regs.get(Reg.PC);
     }
 
     public void pushPC() {
@@ -123,11 +127,11 @@ public class CPU implements Serializable {
      * to it after pushing the current value of it to the stack.
      * @see <a href=https://gbdev.io/pandocs/Interrupts.html>Pan Docs - Interrupts</a>
      */
-    private void handleInterrupts() {
+    private boolean handleInterrupts() {
         int interruptEnableFlags = memory.read(0xFFFF);
         int interruptFlags = memory.read(0xFF0F);
 
-        if (!interruptsEnabled && !halted) return;
+        if (!interruptsEnabled && !halted) return false;
 
         for (int i = 0; i < 5; i++) {
             // check if interrupt is enabled, and then if it is requested
@@ -148,9 +152,11 @@ public class CPU implements Serializable {
                     cycles += 5;
                 }
 
-                return; // early return if we found an interrupt
+                return true; // early return if we found an interrupt
             }
         }
+
+        return false;
     }
 
     /**
@@ -209,8 +215,52 @@ public class CPU implements Serializable {
     public int runCycle() {
         if (haltBugCounter == 1) regs.addPC(-1);
 
+        // A:01 F:Z-HC BC:0013 DE:00d8 HL:014d SP:fffe PC:0100
+        // F:ZNHC
+
+//        class Hex {
+//            public static String toHex(int number, boolean twoDigits) {
+//                return String.format(twoDigits ? "%02x" : "%04x", number);
+//            }
+//
+//            public static String toHex(int number) {
+//                return String.format("%04x", number);
+//            }
+//
+//        }
+
+//        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("logInstructions.txt", true))) {
+//            StringBuilder sb = new StringBuilder();
+//            // A register
+//            sb.append("A:").append(Hex.toHex(regs.get(Reg.A), true).toUpperCase()).append(" ");
+//            // Flags
+//            sb.append("F:").append(regs.getZeroFlag() == 1 ? "Z" : "-");
+//            sb.append(regs.getSubtractionFlag() == 1 ? "N" : "-");
+//            sb.append(regs.getHalfcarryFlag() == 1 ? "H" : "-");
+//            sb.append(regs.getCarryFlag() == 1 ? "C" : "-").append(" ");
+//            // BC reg
+//            sb.append("BC:").append(Hex.toHex(regs.get(Reg.BC))).append(" ");
+//            // DE reg
+//            sb.append("DE:").append(Hex.toHex(regs.get(Reg.DE))).append(" ");
+//            // HL reg
+//            sb.append("HL:").append(Hex.toHex(regs.get(Reg.HL))).append(" ");
+//            // SP
+//            sb.append("SP:").append(Hex.toHex(regs.get(Reg.SP))).append(" ");
+//            // PC
+//            sb.append("PC:").append(Hex.toHex(regs.get(Reg.PC)));
+//            sb.append("\n");
+//
+//            bos.write(sb.toString().getBytes());
+//        } catch (IOException ex) {
+//            CuteLogger.log(Level.WARNING, ex.getMessage());
+//        }
+
         // Check & handle interrupts -- I think this should work?
-        handleInterrupts();
+        if (handleInterrupts()) {
+            int returnCycles = cycles;
+            cycles = 0;
+            return returnCycles;
+        }
         if (halted) return 0;
 
         int instruction = memory.read(regs.get(Reg.PC));

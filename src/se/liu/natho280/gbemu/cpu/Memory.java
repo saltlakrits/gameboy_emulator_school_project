@@ -150,6 +150,8 @@ public class Memory implements Serializable
 
         if (address <= 0x7FFF) {
             rom.write(address, value);
+        } else if (address >= 0xA000 && address <= 0xBFFF) {
+            rom.write(address, value); // writing to RAM a separate method?
         } else if (address == 0xFF04) {
             resetDivTimer();
             //if (address == 0xFF01) System.out.print((char)value); // print serial port writes
@@ -175,6 +177,7 @@ public class Memory implements Serializable
 //            if (dmaTransferLock == 0) memory[address] = new UnsignedByte(value); // FIXME
 //            if (dmaTransferLock == 0) unconditionalWrite(address, value);
             if (dmaTransferLock == 0) memory[subtractedAddress].set(value);
+            //memory[subtractedAddress].set(value);
         }
 
         for (MemoryListener memoryListener : memoryListeners) {
@@ -184,6 +187,10 @@ public class Memory implements Serializable
 
     public int read(int address) {
         if (address >= 0x0 && address <= 0x7FFF) {
+            return rom.get(address);
+        }
+        if (address >= 0xA000 && address <= 0xBFFF) {
+            // reading from RAM must be redirected through MBC
             return rom.get(address);
         }
         if (address == 0xFF00) {
@@ -342,7 +349,7 @@ public class Memory implements Serializable
         rom.addMBCListener(l);
     }
 
-    public void reInitializeMemory(String newROM) {
+    private List<MBCListener> reInitialize() {
         // zero out the memory
         for (int i = 0; i < memory.length; i++) {
             unconditionalWrite(i + 0x8000, 0);
@@ -353,9 +360,28 @@ public class Memory implements Serializable
         timaCycles = 0;
 
         // drop ROM, reinit
-        List<MBCListener> oldMBCListeners = rom.getMBCListeners();
+        return rom.getMBCListeners();
+    }
+
+    public void reInitializeMemory(String newROM) {
+        List<MBCListener> oldMBCListeners = reInitialize();
 
         this.rom = new ROM(newROM);
+
+        if (oldMBCListeners != null) {
+            for (MBCListener l : oldMBCListeners) {
+                this.rom.addMBCListener(l);
+            }
+        }
+    }
+
+    /**
+     * For ROM resetting
+     */
+    public void reInitializeMemory() {
+        List<MBCListener> oldMBCListeners = reInitialize();
+
+        this.rom.reset();
 
         if (oldMBCListeners != null) {
             for (MBCListener l : oldMBCListeners) {
