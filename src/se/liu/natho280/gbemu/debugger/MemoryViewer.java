@@ -20,6 +20,7 @@ public class MemoryViewer implements MBCListener, RegisterListener {
     private final MemoryTable memoryTable;
     private final DisassemblyTable disassemblyTable;
     private final RegisterTable registerTable;
+    private final BreakpointTable breakpointTable;
 
     private boolean emulatorPaused = false;
     private boolean shouldStep = false;
@@ -37,6 +38,7 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         this.memoryTable = new MemoryTable(memory);
         this.disassemblyTable = new DisassemblyTable(memory);
         this.registerTable = new RegisterTable(regs);
+        this.breakpointTable = new BreakpointTable();
 
         this.emulatorPaused = showDebugger;
 
@@ -47,14 +49,12 @@ public class MemoryViewer implements MBCListener, RegisterListener {
 
     public void addBreakpoint(int address) {
         breakpoints.add(address);
-    }
-
-    public void removeBreakpoint(int address) {
-        breakpoints.remove(address);
+        this.breakpointTable.addBreakpoint(address);
     }
 
     public void removeBreakpointIndex(int index) {
         breakpoints.remove(index);
+        this.breakpointTable.removeBreakpoint(index);
     }
 
     public List<Integer> getBreakpoints() {
@@ -96,7 +96,13 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         JPanel topPanel = new JPanel(new GridLayout(1, 2));
         topPanel.setPreferredSize(new Dimension(0, 0));
         topPanel.add(disassemblyTable.getDisassemblyTableScrollPane());
-        topPanel.add(registerTable.getRegisterScrollPane());
+
+        JPanel topRightPanel = new JPanel(new GridLayout(2, 1));
+
+        topRightPanel.add(registerTable.getRegisterScrollPane());
+        topRightPanel.add(breakpointTable.getBreakpointScrollPane());
+
+        topPanel.add(topRightPanel);
 
         frame.add(topPanel);
         frame.add(memoryTable.getMemoryTableScrollPane());

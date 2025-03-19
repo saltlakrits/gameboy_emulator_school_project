@@ -377,7 +377,7 @@ public class EmuViewer implements DebuggerListener {
         @Override public void actionPerformed(final ActionEvent e) {
             StringBuilder sb = new StringBuilder();
             for (int breakpointAddress : memoryViewer.getBreakpoints()) {
-                sb.append(memoryViewer.getBreakpoints().indexOf(breakpointAddress)).append(": ").append("$").append(Integer.toHexString(breakpointAddress).toUpperCase()).append("\n");
+                sb.append(memoryViewer.getBreakpoints().indexOf(breakpointAddress) + 1).append(": ").append("$").append(Integer.toHexString(breakpointAddress).toUpperCase()).append("\n");
             }
             sb.append("\nAddress for new breakpoint: ");
 
@@ -398,13 +398,13 @@ public class EmuViewer implements DebuggerListener {
         @Override public void actionPerformed(final ActionEvent e) {
             StringBuilder sb = new StringBuilder();
             for (int breakpointAddress : memoryViewer.getBreakpoints()) {
-                sb.append(memoryViewer.getBreakpoints().indexOf(breakpointAddress)).append(": ").append("$").append(Integer.toHexString(breakpointAddress).toUpperCase()).append("\n");
+                sb.append(memoryViewer.getBreakpoints().indexOf(breakpointAddress) + 1).append(": ").append("$").append(Integer.toHexString(breakpointAddress).toUpperCase()).append("\n");
             }
             sb.append("\nIndex to remove: ");
             int index = 0;
             // TODO Clean this up
             try {
-                index = Integer.valueOf(JOptionPane.showInputDialog(frame, sb.toString(), memoryViewer.getBreakpoints().size() - 1));
+                index = Integer.valueOf(JOptionPane.showInputDialog(frame, sb.toString(), memoryViewer.getBreakpoints().size())) - 1;
             } catch (NumberFormatException ex) {
                 return;
             }
