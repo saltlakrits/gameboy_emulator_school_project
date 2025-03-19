@@ -66,7 +66,7 @@ public class Main {
         CPU cpu = new CPU(memory, registers);
         cpu.setUpBoot();
 
-        EmuViewer emuViewer = new EmuViewer(cpu, memory, display, memoryViewer);
+        EmuViewer emuViewer = new EmuViewer(cpu, memory, display, memoryViewer, showDebuggerAtStartup);
         emuViewer.show();
 
         PPU ppu = new PPU(display, memory);

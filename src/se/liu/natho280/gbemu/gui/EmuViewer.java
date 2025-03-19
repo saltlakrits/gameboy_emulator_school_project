@@ -34,12 +34,15 @@ public class EmuViewer implements DebuggerListener {
     private final JPopupMenu popupMenu = new JPopupMenu();
     private final MemoryViewer memoryViewer;
 
-    public EmuViewer(CPU cpu, Memory memory, Display display, MemoryViewer memoryViewer) {
+    public EmuViewer(CPU cpu, Memory memory, Display display, MemoryViewer memoryViewer, boolean showDebuggerAtStartup) {
         this.cpu = cpu;
         this.memory = memory;
         this.display = display;
         this.memoryViewer = memoryViewer;
         memoryViewer.addDebuggerListener(this);
+        if (showDebuggerAtStartup) {
+            frame.setTitle("gbEmu (paused)");
+        }
     }
 
     /**
