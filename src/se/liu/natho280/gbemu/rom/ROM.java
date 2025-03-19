@@ -29,7 +29,7 @@ public class ROM implements Serializable {
     //    private final UnsignedByte[] boot = new UnsignedByte[256];
     private UnsignedByte[] ram; // RAM size is read from cartridge! address 0x149
 
-    public ROM(String romPath) {
+    public ROM(String romPath) throws IllegalArgumentException {
 
         // load rom
         loadROM(romPath);
@@ -59,7 +59,8 @@ public class ROM implements Serializable {
             default:
                 this.ram = null; // doesn't matter, exiting
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x149].get());
-                System.exit(-1);
+                throw new IllegalArgumentException("Failed to load ROM!");
+//                System.exit(-1);
         }
 
         // If no save file found, but there is ram:
@@ -72,7 +73,7 @@ public class ROM implements Serializable {
         }
     }
 
-    private void selectMBC() {
+    private void selectMBC() throws IllegalArgumentException {
         switch (rom[0x147].get()) {
             case 0:
                 CuteLogger.log(Level.INFO, "Picked MBC0.");
@@ -84,22 +85,20 @@ public class ROM implements Serializable {
                 break;
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
-                System.exit(-1);
+                throw new IllegalArgumentException("Failed to load ROM!");
+//                System.exit(-1);
         }
     }
 
     public ROM() {}
 
-    public void restoreState(SerializationWrapper serializationWrapper) {
+    public void restoreState(SerializationWrapper serializationWrapper, List<MBCListener> mbcListeners) {
         ROM serializedROM = serializationWrapper.getMemory().getROM();
         this.rom = serializedROM.rom;
         this.ram = serializedROM.ram;
 
-        List<MBCListener> oldListeners = this.mbc.getListeners();
-        // TODO need to notify listeners for disassembly, memory, etc
-
         this.mbc = serializationWrapper.getMBC();
-        for (MBCListener listener : oldListeners) {
+        for (MBCListener listener : mbcListeners) {
             this.mbc.addListener(listener);
         }
     }
@@ -157,10 +156,9 @@ public class ROM implements Serializable {
      *
      * @param romPath path to ROM-file as string, should be passed into program as the sole argument
      */
-    private void loadROM(String romPath) {
+    private void loadROM(String romPath) throws IllegalArgumentException {
 
         try (FileInputStream fis = new FileInputStream(romPath)) {
-//            System.out.println(romPath);
             CuteLogger.log(Level.INFO, "ROM: " + romPath);
             BufferedInputStream bis = new BufferedInputStream(fis);
 
@@ -174,8 +172,8 @@ public class ROM implements Serializable {
 
         } catch (IOException e) {
             CuteLogger.log(Level.SEVERE, e.getMessage());
-            System.err.println("Failed to load ROM: " + romPath);
-            System.exit(-1);
+            // ignores the thrown exception in favor of throwing a more generic one to signify a failed ROM load
+            throw new IllegalArgumentException("Failed to load ROM!");
         }
     }
 
@@ -187,7 +185,7 @@ public class ROM implements Serializable {
      *
      * @return the number of banks in the ROM
      */
-    private int romBankNumber(int memoryValue) {
+    private int romBankNumber(int memoryValue) throws IllegalArgumentException {
         if (memoryValue < 0x9) {
             return (1 << (memoryValue + 1));
         }
@@ -201,10 +199,9 @@ public class ROM implements Serializable {
                 return 96;
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown ROM bank number: " + Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
-                System.exit(-1);
+//                System.exit(-1);
+                throw new IllegalArgumentException("Failed to load ROM!");
         }
-
-        return 0; // unreachable
     }
 
     /**

@@ -70,6 +70,11 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         }
     }
 
+    public void clearBreakpoints() {
+        breakpoints.clear();
+        breakpointTable.clear();
+    }
+
     public List<Integer> getBreakpoints() {
         return new ArrayList<>(breakpoints);
     }
@@ -166,6 +171,9 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         JMenuItem removeBreakpointItem = new JMenuItem("Remove breakpoint...");
         removeBreakpointItem.addActionListener(new RemoveBreakpointAction());
         debugMenu.add(removeBreakpointItem);
+        JMenuItem clearBreakpointsItem = new JMenuItem("Clear breakpoints");
+        clearBreakpointsItem.addActionListener(new ClearBreakpointsAction());
+        debugMenu.add(clearBreakpointsItem);
         JMenuItem resetItem = new JMenuItem("Reset");
         resetItem.addActionListener(new ResetROMAction());
         debugMenu.add(resetItem);
@@ -226,6 +234,10 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         if (this.emulatorPaused) {
             this.registerTable.registerUpdated(reg);
         }
+    }
+
+    public void forceRedisassemble() {
+        this.disassemblyTable.redisassembleROM();
     }
 
     private class ChangeROMAction extends AbstractAction {
@@ -289,6 +301,13 @@ public class MemoryViewer implements MBCListener, RegisterListener {
     {
         @Override public void actionPerformed(final ActionEvent e) {
             removeBreakpointIndex();
+        }
+    }
+
+    private class ClearBreakpointsAction extends AbstractAction
+    {
+        @Override public void actionPerformed(final ActionEvent e) {
+            clearBreakpoints();
         }
     }
 }

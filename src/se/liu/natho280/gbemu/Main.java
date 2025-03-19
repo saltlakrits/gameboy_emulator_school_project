@@ -27,26 +27,6 @@ public class Main {
 
         FlatLightLaf.setup();
 
-        // System.out.println("Hello, game boy!");
-
-        if (args.length != 1 && args.length != 2) {
-            System.out.println("You need to specify a ROM file, in one word, and nothing else, optionally with '-d' to enable showDebuggerAtStartup.");
-            System.exit(-1);
-        }
-
-        // kinda dirty but does the trick i think
-        String romFilePath = "";
-        boolean showDebuggerAtStartup = false;
-        if (args[0].equals("-d")) {
-            showDebuggerAtStartup = true;
-            if (args.length == 1) {
-                System.out.println("Please specify a ROM file after the '-d' switch, in one word, and nothing else.");
-                System.exit(-1);
-            } else {
-                romFilePath = args[1];
-            }
-        } else romFilePath = args[0];
-
         /*
         TODO
 
@@ -58,25 +38,28 @@ public class Main {
          */
 
         Display display = new Display(); // display is shared between ppu and frontend
-        Memory memory = new Memory(romFilePath);
+        Memory memory = new Memory();
         Registers registers = new Registers();
 
-        MemoryViewer memoryViewer = new MemoryViewer(memory, registers, showDebuggerAtStartup);
+        // TODO Consider removing the boolean parameter
+        MemoryViewer memoryViewer = new MemoryViewer(memory, registers, false);
 
         CPU cpu = new CPU(memory, registers);
         cpu.setUpBoot();
 
-        EmuViewer emuViewer = new EmuViewer(cpu, memory, display, memoryViewer, showDebuggerAtStartup);
+        // TODO Consider removing the boolean parameter
+        EmuViewer emuViewer = new EmuViewer(cpu, memory, display, memoryViewer, false);
         emuViewer.show();
 
         PPU ppu = new PPU(display, memory);
 
         while (true) {
+            if (memory.hasValidROM()) {
                 int dots = 0;
                 long frameTime = System.currentTimeMillis() + 16;
 
                 // run all the dots (T-cycles) for a single frame
-                while (dots < DOTS_PER_FRAME) {
+                while (dots < DOTS_PER_FRAME && memory.hasValidROM()) {
                     synchronized (cpu.lock()) {
                         int cycles;
 
@@ -89,10 +72,6 @@ public class Main {
                             cycles = cpuCycle(cpu);
                             // TODO Check that it finds everything!
                             memoryViewer.checkBreakpoints(cpu.getPC());
-//                            memoryViewer.checkBreakpoints(cpu.getPC() - 1);
-//                            memoryViewer.checkBreakpoints(cpu.getPC() + 1);
-//                            memoryViewer.checkBreakpoints(cpu.getPC() + 2);
-//                            memoryViewer.checkBreakpoints(cpu.getPC() + 2);
                         } else {
                             cycles = 0;
                         }
@@ -108,6 +87,7 @@ public class Main {
                     // wait until new frame -- this is what limits the emulator speed and
                     // should be where the program spends the majority of it's runtime
                 }
+            }
         }
     }
 

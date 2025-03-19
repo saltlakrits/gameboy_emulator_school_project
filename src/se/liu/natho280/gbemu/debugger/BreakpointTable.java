@@ -55,4 +55,8 @@ public class BreakpointTable {
 	    this.breakpointTableModel.setValueAt(rowData, i, 0);
 	}
     }
+
+    public void clear() {
+	breakpointTableModel.setRowCount(0);
+    }
 }

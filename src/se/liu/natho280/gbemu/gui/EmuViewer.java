@@ -68,6 +68,8 @@ public class EmuViewer implements DebuggerListener {
                 this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
                 this.memoryViewer.redisassemble();
             }
+
+            memoryViewer.clearBreakpoints();
         }
     }
 
@@ -102,6 +104,8 @@ public class EmuViewer implements DebuggerListener {
                     this.memory.restoreState(serializationWrapper);
                     this.cpu.restoreState(serializationWrapper);
                 }
+
+                memoryViewer.forceRedisassemble();
             }
     }
 

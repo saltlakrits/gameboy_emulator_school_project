@@ -1,5 +1,6 @@
 package se.liu.natho280.gbemu.cpu;
 
+import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.serialization.SerializableMBC;
 import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.debugger.MBCListener;
@@ -10,6 +11,7 @@ import se.liu.natho280.gbemu.rom.ROM;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * <p>This is the <a href=https://gbdev.io/pandocs/Memory_Map.html>memory</a> of the Game Boy. Input is stored here, as
@@ -41,17 +43,76 @@ public class Memory implements Serializable
     private int tima = 0;
     private int timaCycles = 0;
 
+    private volatile boolean validROM = false;
+
     private transient List<MemoryListener> memoryListeners = new ArrayList<>();
+
+    private transient List<MBCListener> mbcListeners = new ArrayList<>();
+
+    public Memory() {
+        for (int i = 0; i < memory.length; i++) {
+            memory[i] = new UnsignedByte(0);
+        }
+    }
 
     public Memory(String romPath) {
         // create (& probably load) ROM with romPath string
-        this.rom = new ROM(romPath);
+
+        // catch exception
+        loadROM(romPath);
+
         // FIXME some of these addresses may not be "real" memory, but just "magical addresses" that show e.g.
         //  status of hardware and similar (just like how some of the memory just point to the ROM in the cartridge!).
         //  As such, this may need to change!
         for (int i = 0; i < memory.length; i++) {
             memory[i] = new UnsignedByte(0);
         }
+    }
+
+    private void loadROM(String romPath) {
+        try {
+            this.rom = new ROM(romPath);
+            this.validROM = true;
+            for (MBCListener listener : mbcListeners) {
+                this.rom.addMBCListener(listener);
+            }
+            CuteLogger.log(Level.INFO, "Successfully loaded ROM.");
+        } catch (IllegalArgumentException ignored) {
+            this.validROM = false;
+        }
+    }
+
+    /**
+     * For ROM switching
+     * @param newROM
+     */
+    public void reInitializeMemory(String newROM) {
+        for (int i = 0; i < memory.length; i++) {
+            unconditionalWrite(i + 0x8000, 0);
+        }
+
+        resetDivTimer();
+        tima = 0;
+        timaCycles = 0;
+
+        loadROM(newROM);
+    }
+
+    /**
+     * For ROM resetting
+     */
+    public void reInitializeMemory() {
+        this.rom.reset();
+
+        if (mbcListeners != null) {
+            for (MBCListener l : mbcListeners) {
+                this.rom.addMBCListener(l);
+            }
+        }
+    }
+
+    public boolean hasValidROM() {
+        return validROM;
     }
 
     public void restoreState(SerializationWrapper serializationWrapper) {
@@ -65,8 +126,9 @@ public class Memory implements Serializable
         this.flooredDivTimer = wrapperMemory.flooredDivTimer;
         this.tima = wrapperMemory.tima;
         this.timaCycles = wrapperMemory.timaCycles;
+        this.validROM = wrapperMemory.validROM;
 
-        this.rom.restoreState(serializationWrapper);
+        this.rom.restoreState(serializationWrapper, mbcListeners);
     }
 
     public SerializableMBC getSerializableMBC() {
@@ -87,7 +149,6 @@ public class Memory implements Serializable
         flooredDivTimer = ((int)divTimer) & 0xFF;
 
         memory[0xFF04 - 0x8000].set(flooredDivTimer);
-//        unconditionalWrite(0xFF04, flooredDivTimer);
     }
 
     public void incTimaCycles(int cycles) {
@@ -225,6 +286,7 @@ public class Memory implements Serializable
      */
     public int unconditionalRead(int address) {
         if (address >= 0x0 && address <= 0x7FFF) {
+            if (this.rom == null) return 0;
             return rom.get(address);
         }
         return memory[address - 0x8000].get();
@@ -346,7 +408,8 @@ public class Memory implements Serializable
     }
 
     public void addMBCListener(MBCListener l) {
-        rom.addMBCListener(l);
+        this.mbcListeners.add(l);
+        if (this.rom != null) rom.addMBCListener(l);
     }
 
     private List<MBCListener> reInitialize() {
@@ -361,32 +424,5 @@ public class Memory implements Serializable
 
         // drop ROM, reinit
         return rom.getMBCListeners();
-    }
-
-    public void reInitializeMemory(String newROM) {
-        List<MBCListener> oldMBCListeners = reInitialize();
-
-        this.rom = new ROM(newROM);
-
-        if (oldMBCListeners != null) {
-            for (MBCListener l : oldMBCListeners) {
-                this.rom.addMBCListener(l);
-            }
-        }
-    }
-
-    /**
-     * For ROM resetting
-     */
-    public void reInitializeMemory() {
-        List<MBCListener> oldMBCListeners = reInitialize();
-
-        this.rom.reset();
-
-        if (oldMBCListeners != null) {
-            for (MBCListener l : oldMBCListeners) {
-                this.rom.addMBCListener(l);
-            }
-        }
     }
 }
