@@ -8,6 +8,7 @@ import se.liu.natho280.gbemu.debugger.MemoryListener;
 import se.liu.natho280.gbemu.ppu.OAM;
 import se.liu.natho280.gbemu.rom.ROM;
 
+import javax.swing.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,8 +78,9 @@ public class Memory implements Serializable
                 this.rom.addMBCListener(listener);
             }
             CuteLogger.log(Level.INFO, "Successfully loaded ROM.");
-        } catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException e) {
             this.validROM = false;
+            JOptionPane.showMessageDialog(null, e.getMessage() + "\n\nTip: Make sure the file you are trying to load is a Game Boy ROM-file!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

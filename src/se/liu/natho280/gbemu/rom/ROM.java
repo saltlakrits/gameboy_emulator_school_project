@@ -19,7 +19,6 @@ import java.util.logging.Level;
  */
 public class ROM implements Serializable {
     // this will be 0x4000 * N
-    // the first
 
     private static final int RAM_BANK_SIZE = 0x2000; // 8 KiB
     private transient AbstractMBC mbc = null; // MBC is read from 0x147
@@ -58,9 +57,8 @@ public class ROM implements Serializable {
                 break;
             default:
                 this.ram = null; // doesn't matter, exiting
-                CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x149].get());
-                throw new IllegalArgumentException("Failed to load ROM!");
-//                System.exit(-1);
+                CuteLogger.log(Level.SEVERE, "Unrecognized RAM size: " + rom[0x149].get());
+                throw new IllegalArgumentException("Failed to load ROM!\nError: " + "Unrecognized RAM size: " + rom[0x149].get());
         }
 
         // If no save file found, but there is ram:
@@ -85,8 +83,7 @@ public class ROM implements Serializable {
                 break;
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
-                throw new IllegalArgumentException("Failed to load ROM!");
-//                System.exit(-1);
+                throw new IllegalArgumentException("Failed to load ROM!\nError: Unknown MBC Type: " + rom[0x148].get());
         }
     }
 
@@ -170,10 +167,10 @@ public class ROM implements Serializable {
                 index++;
             }
 
-        } catch (IOException e) {
-            CuteLogger.log(Level.SEVERE, e.getMessage());
+        } catch (IOException | ArrayIndexOutOfBoundsException e) {
+            CuteLogger.log(Level.SEVERE, "ROM load error: " + e.getMessage());
             // ignores the thrown exception in favor of throwing a more generic one to signify a failed ROM load
-            throw new IllegalArgumentException("Failed to load ROM!");
+            throw new IllegalArgumentException("Failed to load ROM!\nError: " + e.getMessage());
         }
     }
 
@@ -200,7 +197,7 @@ public class ROM implements Serializable {
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown ROM bank number: " + Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
 //                System.exit(-1);
-                throw new IllegalArgumentException("Failed to load ROM!");
+                throw new IllegalArgumentException("Failed to load ROM!\nError: " + "Unknown ROM bank number: " + Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
         }
     }
 
