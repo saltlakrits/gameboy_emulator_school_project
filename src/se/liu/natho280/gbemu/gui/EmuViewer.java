@@ -50,39 +50,91 @@ public class EmuViewer implements DebuggerListener {
      * the CPU and Memory. The PPU shouldn't care that we do so.
      * @param newROM path to new ROM file
      */
-    private void changeROM(String newROM) {
-       synchronized (cpu.lock()) {
-           this.memory.reInitializeMemory(newROM); // reinitialize memory (zero it out), inside it reInit ROM as well?
-           this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
-           this.memoryViewer.redisassemble();
-       }
+    public void changeROM() {
+        // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
+        JFileChooser fc = new JFileChooser();
+        // reasonable size on large screens, not too big for tiny screens
+        fc.setPreferredSize(new Dimension(800, 600));
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fc.setDialogTitle("Load ROM");
+        fc.setDialogType(JFileChooser.OPEN_DIALOG);
+        fc.setFileFilter(new FileNameExtensionFilter(".gb files", "gb"));
+
+        if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            String romPath = fc.getSelectedFile().getAbsolutePath();
+
+            synchronized (cpu.lock()) {
+                this.memory.reInitializeMemory(romPath); // reinitialize memory (zero it out), inside it reInit ROM as well?
+                this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
+                this.memoryViewer.redisassemble();
+            }
+        }
     }
 
-    private void resetROM() {
+    public void resetROM() {
         synchronized (cpu.lock()) {
             this.memory.reInitializeMemory(); // reinitialize memory (zero it out), inside it reInit ROM as well?
             this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
             this.memoryViewer.redisassemble();
         }
-    }
-
-    private void loadState(String statePath) {
-        synchronized (cpu.lock()) {
-            SerializationWrapper serializationWrapper = new SerializationWrapper(statePath);
-
-            this.memory.restoreState(serializationWrapper);
-            this.cpu.restoreState(serializationWrapper);
-
-//            logRegs(this.cpu.getRegisters());
+        if (!memoryViewer.getEmulatorPaused()) {
+            memoryViewer.toggleDebugging();
+            debuggerToggled();
         }
     }
 
-    private void saveState(String statePath) {
-        synchronized (cpu.lock()) {
-            SerializationWrapper sw = new SerializationWrapper(this.cpu, this.memory);
-            sw.serialize(statePath);
-//            logRegs(this.cpu.getRegisters());
+    public void loadState() {
+        // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
+        JFileChooser fc = new JFileChooser();
+        // reasonable size on large screens, not too big for tiny screens
+        fc.setPreferredSize(new Dimension(800, 600));
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fc.setDialogTitle("Load State");
+        fc.setDialogType(JFileChooser.OPEN_DIALOG);
+        fc.setFileFilter(new FileNameExtensionFilter(".state files", "state"));
+
+            if (fc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                String loadPath = fc.getSelectedFile().getAbsolutePath();
+
+                synchronized (cpu.lock()) {
+                    SerializationWrapper serializationWrapper = new SerializationWrapper(loadPath);
+
+                    this.memory.restoreState(serializationWrapper);
+                    this.cpu.restoreState(serializationWrapper);
+                }
+            }
+    }
+
+    public void saveState() {
+        // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
+        JFileChooser fc = new JFileChooser();
+        fc.setSelectedFile(new File("myState.state"));
+        // reasonable size on large screens, not too big for tiny screens
+        fc.setPreferredSize(new Dimension(800, 600));
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fc.setDialogTitle("Save State");
+        fc.setDialogType(JFileChooser.SAVE_DIALOG);
+        fc.setFileFilter(new FileNameExtensionFilter(".state files", "state"));
+
+        if (fc.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+            String savePath = fc.getSelectedFile().getAbsolutePath();
+            if (!savePath.endsWith(".state")) {
+                savePath += ".state";
+            }
+
+            synchronized (cpu.lock()) {
+                SerializationWrapper sw = new SerializationWrapper(this.cpu, this.memory);
+                sw.serialize(savePath);
+            }
         }
+    }
+
+    public void addBreakpoint() {
+        memoryViewer.addBreakpoint();
+    }
+
+    public void removeBreakpoint() {
+        memoryViewer.removeBreakpointIndex();
     }
 
     private void logRegs(Registers regs) {
@@ -260,63 +312,20 @@ public class EmuViewer implements DebuggerListener {
     private class LoadROMAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
-            // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
-            JFileChooser fc = new JFileChooser();
-            // reasonable size on large screens, not too big for tiny screens
-            fc.setPreferredSize(new Dimension(800, 600));
-            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fc.setDialogTitle("Load ROM");
-            fc.setDialogType(JFileChooser.OPEN_DIALOG);
-            fc.setFileFilter(new FileNameExtensionFilter(".gb files", "gb"));
-
-            if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                String romPath = fc.getSelectedFile().getAbsolutePath();
-                changeROM(romPath);
-            }
+            changeROM();
 	}
     }
 
     private class SaveStateAction extends AbstractAction {
 
         @Override public void actionPerformed(final ActionEvent e) {
-
-            // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
-            JFileChooser fc = new JFileChooser();
-            fc.setSelectedFile(new File("myState.state"));
-            // reasonable size on large screens, not too big for tiny screens
-            fc.setPreferredSize(new Dimension(800, 600));
-            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fc.setDialogTitle("Save State");
-            fc.setDialogType(JFileChooser.SAVE_DIALOG);
-            fc.setFileFilter(new FileNameExtensionFilter(".state files", "state"));
-
-            if (fc.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
-                String savePath = fc.getSelectedFile().getAbsolutePath();
-                if (!savePath.endsWith(".state")) {
-                    savePath += ".state";
-                }
-
-                saveState(savePath);
-            }
+            saveState();
         }
     }
 
     private class LoadStateAction extends AbstractAction {
         @Override public void actionPerformed(final ActionEvent e) {
-
-            // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
-            JFileChooser fc = new JFileChooser();
-            // reasonable size on large screens, not too big for tiny screens
-            fc.setPreferredSize(new Dimension(800, 600));
-            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fc.setDialogTitle("Load State");
-            fc.setDialogType(JFileChooser.OPEN_DIALOG);
-            fc.setFileFilter(new FileNameExtensionFilter(".state files", "state"));
-
-            if (fc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-                String loadPath = fc.getSelectedFile().getAbsolutePath();
-                loadState(loadPath);
-            }
+            loadState();
         }
     }
 
@@ -378,47 +387,20 @@ public class EmuViewer implements DebuggerListener {
     private class AddBreakpointAction extends AbstractAction
     {
         @Override public void actionPerformed(final ActionEvent e) {
-            StringBuilder sb = new StringBuilder();
-            for (int breakpointAddress : memoryViewer.getBreakpoints()) {
-                sb.append(memoryViewer.getBreakpoints().indexOf(breakpointAddress) + 1).append(": ").append("$").append(Integer.toHexString(breakpointAddress).toUpperCase()).append("\n");
-            }
-            sb.append("\nAddress for new breakpoint: ");
-
-            int newBreakpointAddress = 0;
-            // TODO Clean this up
-            try {
-                newBreakpointAddress = Integer.parseInt(JOptionPane.showInputDialog(frame, sb.toString()), 16);
-            } catch (NumberFormatException ex) {
-                System.err.println(ex.getMessage());
-                return;
-            }
-            memoryViewer.addBreakpoint(newBreakpointAddress);
+            addBreakpoint();
         }
     }
 
     private class RemoveBreakpointAction extends AbstractAction
     {
         @Override public void actionPerformed(final ActionEvent e) {
-            StringBuilder sb = new StringBuilder();
-            for (int breakpointAddress : memoryViewer.getBreakpoints()) {
-                sb.append(memoryViewer.getBreakpoints().indexOf(breakpointAddress) + 1).append(": ").append("$").append(Integer.toHexString(breakpointAddress).toUpperCase()).append("\n");
-            }
-            sb.append("\nIndex to remove: ");
-            int index = 0;
-            // TODO Clean this up
-            try {
-                index = Integer.valueOf(JOptionPane.showInputDialog(frame, sb.toString(), memoryViewer.getBreakpoints().size())) - 1;
-            } catch (NumberFormatException ex) {
-                return;
-            }
-            memoryViewer.removeBreakpointIndex(index);
+            removeBreakpoint();
         }
     }
 
     private class ResetAction extends AbstractAction {
         @Override public void actionPerformed(final ActionEvent e) {
             resetROM();
-            if (!memoryViewer.getEmulatorPaused()) new ToggleDebuggingAction().actionPerformed(e);
         }
     }
 }

@@ -1,5 +1,6 @@
 package se.liu.natho280.gbemu.debugger;
 
+import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.cpu.Memory;
 import se.liu.natho280.gbemu.cpu.Reg;
 import se.liu.natho280.gbemu.cpu.Registers;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.logging.Level;
 
 /**
  * Secondary (to the emulator screen) JFrame, which displays memory, disassembled ROM (and memory), and registers.
@@ -47,14 +49,25 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         frame.setVisible(showDebugger);
     }
 
-    public void addBreakpoint(int address) {
-        breakpoints.add(address);
-        this.breakpointTable.addBreakpoint(address);
+    public void addBreakpoint() {
+        try {
+            int newBreakpointAddress = Integer.parseInt(JOptionPane.showInputDialog(frame, "Address for new breakpoint:"), 16);
+            breakpoints.add(newBreakpointAddress);
+            this.breakpointTable.addBreakpoint(newBreakpointAddress);
+        } catch (NumberFormatException ex) {
+            System.err.println(ex.getMessage());
+            CuteLogger.log(Level.WARNING, ex.getMessage());
+        }
     }
 
-    public void removeBreakpointIndex(int index) {
-        breakpoints.remove(index);
-        this.breakpointTable.removeBreakpoint(index);
+    public void removeBreakpointIndex() {
+        try {
+            int index = Integer.valueOf(JOptionPane.showInputDialog(frame, "Index to remove:", getBreakpoints().size())) - 1;
+            breakpoints.remove(index);
+            this.breakpointTable.removeBreakpoint(index);
+        } catch (NumberFormatException ex) {
+            CuteLogger.log(Level.WARNING, ex.getMessage());
+        }
     }
 
     public List<Integer> getBreakpoints() {
@@ -71,7 +84,7 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         this.debuggerListeners.add(listener);
     }
 
-    private void notifyDebuggerListeners() {
+    private void notifyDebuggerToggled() {
         for (DebuggerListener listener : debuggerListeners) {
             listener.debuggerToggled();
         }
@@ -90,8 +103,9 @@ public class MemoryViewer implements MBCListener, RegisterListener {
 //        frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
+        makeBar();
+
         frame.setLayout(new GridLayout(2, 1));
-        // add disassembly here
 
         JPanel topPanel = new JPanel(new GridLayout(1, 2));
         topPanel.setPreferredSize(new Dimension(0, 0));
@@ -118,6 +132,47 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         final ActionMap act = pane.getActionMap();
         act.put("toggle_debugging", new ToggleDebuggingAction());
         act.put("step_forward", new StepForwardAction());
+    }
+
+    /**
+     * Make a menu bar and add it to the frame
+     */
+    private void makeBar() {
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu fileMenu = new JMenu("File");
+        JMenuItem changeROMItem = new JMenuItem("Change ROM...");
+        changeROMItem.addActionListener(new ChangeROMAction());
+        fileMenu.add(changeROMItem);
+        JMenuItem saveStateItem = new JMenuItem("Save state...");
+        saveStateItem.addActionListener(new SaveStateAction());
+        JMenuItem loadStateItem = new JMenuItem("Load state...");
+        loadStateItem.addActionListener(new LoadStateAction());
+        fileMenu.add(loadStateItem);
+        fileMenu.add(saveStateItem);
+
+        menuBar.add(fileMenu);
+
+        JMenu debugMenu = new JMenu("Debug");
+        JMenuItem pauseItem = new JMenuItem("Toggle pause");
+        pauseItem.addActionListener(new ToggleDebuggingAction());
+        debugMenu.add(pauseItem);
+        JMenuItem stepItem = new JMenuItem("Step forward");
+        stepItem.addActionListener(new StepForwardAction());
+        debugMenu.add(stepItem);
+        JMenuItem addBreakpointItem = new JMenuItem("Add breakpoint...");
+        addBreakpointItem.addActionListener(new AddBreakpointAction());
+        debugMenu.add(addBreakpointItem);
+        JMenuItem removeBreakpointItem = new JMenuItem("Remove breakpoint...");
+        removeBreakpointItem.addActionListener(new RemoveBreakpointAction());
+        debugMenu.add(removeBreakpointItem);
+        JMenuItem resetItem = new JMenuItem("Reset");
+        resetItem.addActionListener(new ResetROMAction());
+        debugMenu.add(resetItem);
+
+        menuBar.add(debugMenu);
+
+        frame.setJMenuBar(menuBar);
     }
 
     public void toggleVisibility() {
@@ -173,11 +228,37 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         }
     }
 
+    private class ChangeROMAction extends AbstractAction {
+        @Override public void actionPerformed(final ActionEvent e) {
+            for (DebuggerListener l : debuggerListeners) {
+                l.changeROM();
+            }
+        }
+    }
+
+    private class SaveStateAction extends AbstractAction
+    {
+        @Override public void actionPerformed(final ActionEvent e) {
+            for (DebuggerListener l : debuggerListeners) {
+                l.saveState();
+            }
+        }
+    }
+
+    private class LoadStateAction extends AbstractAction
+    {
+        @Override public void actionPerformed(final ActionEvent e) {
+            for (DebuggerListener l : debuggerListeners) {
+                l.loadState();
+            }
+        }
+    }
+
     private class ToggleDebuggingAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
             toggleDebugging();
-            notifyDebuggerListeners();
+            notifyDebuggerToggled();
         }
     }
 
@@ -186,6 +267,28 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         public void actionPerformed(final ActionEvent e) {
             if (!getEmulatorPaused()) new ToggleDebuggingAction().actionPerformed(e);
             step();
+        }
+    }
+
+    private class ResetROMAction extends AbstractAction {
+        @Override public void actionPerformed(final ActionEvent e) {
+            for (DebuggerListener l : debuggerListeners) {
+                l.resetROM();
+            }
+        }
+    }
+
+    private class AddBreakpointAction extends AbstractAction
+    {
+        @Override public void actionPerformed(final ActionEvent e) {
+            addBreakpoint();
+        }
+    }
+
+    private class RemoveBreakpointAction extends AbstractAction
+    {
+        @Override public void actionPerformed(final ActionEvent e) {
+            removeBreakpointIndex();
         }
     }
 }
