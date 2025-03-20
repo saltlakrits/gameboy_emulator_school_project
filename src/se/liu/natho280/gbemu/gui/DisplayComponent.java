@@ -13,9 +13,9 @@ import java.awt.image.BufferedImage;
  * finished screen draws.
  */
 public class DisplayComponent extends JComponent implements DisplayListener {
-    private static final int RESIZE_FACTOR = 4;
+    private int scalingFactor = 4;
     private Display display;
-    private static final Dimension PREFERRED_SIZE = new Dimension(160 * RESIZE_FACTOR, 144 * RESIZE_FACTOR);
+    private final Dimension preferredSize = new Dimension(160 * scalingFactor, 144 * scalingFactor);
 
     private final BufferedImage image = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
 
@@ -43,7 +43,7 @@ public class DisplayComponent extends JComponent implements DisplayListener {
             }
         }
 
-        BufferedImage scaledImage = scale(image, PREFERRED_SIZE.width, PREFERRED_SIZE.height);
+        BufferedImage scaledImage = scale(image, preferredSize.width, preferredSize.height);
         g2d.drawImage(scaledImage, 0, 0, null);
     }
 
@@ -63,6 +63,12 @@ public class DisplayComponent extends JComponent implements DisplayListener {
 
     @Override
     public Dimension getPreferredSize() {
-        return PREFERRED_SIZE;
+        return preferredSize;
+    }
+
+    public void setScalingFactor(int scalingFactor) {
+        this.scalingFactor = scalingFactor;
+        this.preferredSize.setSize(160 * scalingFactor, 144 * scalingFactor);
+//        System.out.println("setScalingFactor: " + scalingFactor);
     }
 }

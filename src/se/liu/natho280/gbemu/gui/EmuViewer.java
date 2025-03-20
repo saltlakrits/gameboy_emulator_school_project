@@ -15,6 +15,8 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -24,7 +26,8 @@ import java.util.logging.Level;
 /**
  * The frontend window that displays the emulator screen and receives the input from the user.
  */
-public class EmuViewer implements DebuggerListener {
+public class EmuViewer implements DebuggerListener, ComponentListener
+{
     // Frontend for the emulator
 
     private CPU cpu;
@@ -33,6 +36,7 @@ public class EmuViewer implements DebuggerListener {
     private final JFrame frame = new JFrame("gbEmu");
     private final JPopupMenu popupMenu = new JPopupMenu();
     private final MemoryViewer memoryViewer;
+    private final DisplayComponent displayComponent;
 
     public EmuViewer(CPU cpu, Memory memory, Display display, MemoryViewer memoryViewer, boolean showDebuggerAtStartup) {
         this.cpu = cpu;
@@ -43,6 +47,12 @@ public class EmuViewer implements DebuggerListener {
         if (showDebuggerAtStartup) {
             frame.setTitle("gbEmu (paused)");
         }
+        displayComponent = new DisplayComponent(display);
+        frame.addComponentListener(this);
+        frame.getContentPane().setBackground(Color.BLACK);
+
+        // TODO Allow resizing or setting scale factor manually in a settings menu or similar
+//        frame.setResizable(false);
     }
 
     /**
@@ -162,9 +172,8 @@ public class EmuViewer implements DebuggerListener {
     public void show() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        final DisplayComponent displayComp = new DisplayComponent(display);
-        frame.setLayout(new GridLayout(1,1)); // for later!
-        frame.add(displayComp);
+        frame.setLayout(new GridLayout(1,1)); // for later?
+        frame.add(displayComponent);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
@@ -324,6 +333,25 @@ public class EmuViewer implements DebuggerListener {
         reset.addActionListener(new ResetAction());
         popupMenu.add(reset);
     }
+
+    @Override public void componentResized(final ComponentEvent e) {
+        Dimension size = frame.getContentPane().getSize();
+        int scaleHeight = size.height / 144;
+        int scaleWidth = size.width / 160;
+        if (scaleHeight <= scaleWidth) {
+            displayComponent.setScalingFactor(scaleHeight);
+        } else {
+            displayComponent.setScalingFactor(scaleWidth);
+        }
+
+        displayComponent.setLocation((size.width - displayComponent.getPreferredSize().width) / 2, (size.height - displayComponent.getPreferredSize().height) / 2);
+    }
+
+    @Override public void componentMoved(final ComponentEvent e) {}
+
+    @Override public void componentShown(final ComponentEvent e) {}
+
+    @Override public void componentHidden(final ComponentEvent e) {}
 
     private class LoadROMAction extends AbstractAction {
         @Override
