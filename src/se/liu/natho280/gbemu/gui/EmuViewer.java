@@ -271,33 +271,6 @@ public class EmuViewer implements DebuggerListener, ComponentListener
             @Override public void mouseExited(final MouseEvent e) {}
         });
 
-        JMenuItem toggleShowDebugger = new JMenuItem("Toggle debugging window") {
-            @Override
-            public KeyStroke getAccelerator() {
-                return KeyStroke.getKeyStroke("F1");
-            }
-        };
-        toggleShowDebugger.addActionListener(new ToggleDebuggerVisibilityAction());
-        popupMenu.add(toggleShowDebugger);
-
-        JMenuItem togglePause = new JMenuItem("Toggle pause") {
-            @Override
-            public KeyStroke getAccelerator() {
-                return KeyStroke.getKeyStroke("F2");
-            }
-        };
-        togglePause.addActionListener(new ToggleDebuggingAction());
-        popupMenu.add(togglePause);
-
-        JMenuItem step = new JMenuItem("Step forward") {
-            @Override
-            public KeyStroke getAccelerator() {
-                return KeyStroke.getKeyStroke("F3");
-            }
-        };
-        step.addActionListener(new StepForwardAction());
-        popupMenu.add(step);
-
         JMenuItem openROM = new JMenuItem("Load ROM") {
             @Override
             public KeyStroke getAccelerator() {
@@ -332,6 +305,46 @@ public class EmuViewer implements DebuggerListener, ComponentListener
         };
         reset.addActionListener(new ResetAction());
         popupMenu.add(reset);
+
+        popupMenu.addSeparator();
+
+        JMenuItem toggleShowDebugger = new JMenuItem("Toggle debugging window") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F1");
+            }
+        };
+        toggleShowDebugger.addActionListener(new ToggleDebuggerVisibilityAction());
+        popupMenu.add(toggleShowDebugger);
+
+        JMenuItem togglePause = new JMenuItem("Toggle pause") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F2");
+            }
+        };
+        togglePause.addActionListener(new ToggleDebuggingAction());
+        popupMenu.add(togglePause);
+
+        JMenuItem step = new JMenuItem("Step forward") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F3");
+            }
+        };
+        step.addActionListener(new StepForwardAction());
+        popupMenu.add(step);
+
+        popupMenu.addSeparator();
+
+        JMenuItem exit = new JMenuItem("Exit") {
+            @Override
+            public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("alt F4");
+            }
+        };
+        exit.addActionListener(new ExitAction());
+        popupMenu.add(exit);
     }
 
     @Override public void componentResized(final ComponentEvent e) {
@@ -445,6 +458,13 @@ public class EmuViewer implements DebuggerListener, ComponentListener
     private class ResetAction extends AbstractAction {
         @Override public void actionPerformed(final ActionEvent e) {
             resetROM();
+        }
+    }
+
+    private class ExitAction extends AbstractAction
+    {
+        @Override public void actionPerformed(final ActionEvent e) {
+            System.exit(0);
         }
     }
 }

@@ -146,15 +146,24 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         JMenuBar menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu("File");
+
         JMenuItem changeROMItem = new JMenuItem("Change ROM...");
         changeROMItem.addActionListener(new ChangeROMAction());
         fileMenu.add(changeROMItem);
+
         JMenuItem saveStateItem = new JMenuItem("Save state...");
         saveStateItem.addActionListener(new SaveStateAction());
+        fileMenu.add(saveStateItem);
+
         JMenuItem loadStateItem = new JMenuItem("Load state...");
         loadStateItem.addActionListener(new LoadStateAction());
         fileMenu.add(loadStateItem);
-        fileMenu.add(saveStateItem);
+
+        fileMenu.addSeparator();
+
+        JMenuItem closeItem = new JMenuItem("Close debugger");
+        closeItem.addActionListener(new HideDebuggerAction());
+        fileMenu.add(closeItem);
 
         menuBar.add(fileMenu);
 
@@ -162,18 +171,27 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         JMenuItem pauseItem = new JMenuItem("Toggle pause");
         pauseItem.addActionListener(new ToggleDebuggingAction());
         debugMenu.add(pauseItem);
+
         JMenuItem stepItem = new JMenuItem("Step forward");
         stepItem.addActionListener(new StepForwardAction());
         debugMenu.add(stepItem);
+
+        debugMenu.addSeparator();
+
         JMenuItem addBreakpointItem = new JMenuItem("Add breakpoint...");
         addBreakpointItem.addActionListener(new AddBreakpointAction());
         debugMenu.add(addBreakpointItem);
+
         JMenuItem removeBreakpointItem = new JMenuItem("Remove breakpoint...");
         removeBreakpointItem.addActionListener(new RemoveBreakpointAction());
         debugMenu.add(removeBreakpointItem);
+
         JMenuItem clearBreakpointsItem = new JMenuItem("Clear breakpoints");
         clearBreakpointsItem.addActionListener(new ClearBreakpointsAction());
         debugMenu.add(clearBreakpointsItem);
+
+        debugMenu.addSeparator();
+
         JMenuItem resetItem = new JMenuItem("Reset");
         resetItem.addActionListener(new ResetROMAction());
         debugMenu.add(resetItem);
@@ -238,6 +256,13 @@ public class MemoryViewer implements MBCListener, RegisterListener {
 
     public void forceRedisassemble() {
         this.disassemblyTable.redisassembleROM();
+    }
+
+    private class HideDebuggerAction extends AbstractAction {
+        @Override public void actionPerformed(final ActionEvent e) {
+            frame.setVisible(!frame.isVisible());
+            if (getEmulatorPaused()) setEmulatorPaused(false);
+        }
     }
 
     private class ChangeROMAction extends AbstractAction {
