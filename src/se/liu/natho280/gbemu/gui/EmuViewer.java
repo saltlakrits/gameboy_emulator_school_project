@@ -209,6 +209,15 @@ public class EmuViewer implements DebuggerListener {
         act.put("start_button_down", new PressAction(GameButton.START));
         act.put("select_button_down", new PressAction(GameButton.SELECT));
 
+        act.put("left_up", new ReleaseAction(GameButton.LEFT));
+        act.put("right_up", new ReleaseAction(GameButton.RIGHT));
+        act.put("up_up", new ReleaseAction(GameButton.UP));
+        act.put("down_up", new ReleaseAction(GameButton.DOWN));
+        act.put("a_button_up", new ReleaseAction(GameButton.A));
+        act.put("b_button_up", new ReleaseAction(GameButton.B));
+        act.put("start_button_up", new ReleaseAction(GameButton.START));
+        act.put("select_button_up", new ReleaseAction(GameButton.SELECT));
+
         act.put("toggle_show_debugger", new ToggleDebuggerVisibilityAction());
         act.put("toggle_debugging", new ToggleDebuggingAction());
         act.put("step_forward", new StepForwardAction());
@@ -218,15 +227,6 @@ public class EmuViewer implements DebuggerListener {
         act.put("add_breakpoint", new AddBreakpointAction());
         act.put("remove_breakpoint", new RemoveBreakpointAction());
         act.put("reset", new ResetAction());
-
-        act.put("left_up", new ReleaseAction(GameButton.LEFT));
-        act.put("right_up", new ReleaseAction(GameButton.RIGHT));
-        act.put("up_up", new ReleaseAction(GameButton.UP));
-        act.put("down_up", new ReleaseAction(GameButton.DOWN));
-        act.put("a_button_up", new ReleaseAction(GameButton.A));
-        act.put("b_button_up", new ReleaseAction(GameButton.B));
-        act.put("start_button_up", new ReleaseAction(GameButton.START));
-        act.put("select_button_up", new ReleaseAction(GameButton.SELECT));
     }
 
     /**
@@ -311,6 +311,14 @@ public class EmuViewer implements DebuggerListener {
         };
         loadState.addActionListener(new LoadStateAction());
         popupMenu.add(loadState);
+
+        JMenuItem reset = new JMenuItem("Reset game") {
+            @Override public KeyStroke getAccelerator() {
+                return KeyStroke.getKeyStroke("F12");
+            }
+        };
+        reset.addActionListener(new ResetAction());
+        popupMenu.add(reset);
     }
 
     private class LoadROMAction extends AbstractAction {
