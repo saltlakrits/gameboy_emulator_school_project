@@ -1,6 +1,7 @@
 package se.liu.natho280.gbemu.serialization;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.Memory;
@@ -33,8 +34,8 @@ public class SerializationWrapper {
 	    this.cpu = sw.cpu;
 	    this.memory = sw.memory;
 	    this.smbc = sw.smbc;
-	} catch (IOException e) {
-	    CuteLogger.log(Level.INFO, e.getMessage());
+	} catch (JsonSyntaxException | IOException e) {
+	    CuteLogger.log(Level.INFO, "Loading of save state failed! Error: " + e.getMessage());
 	    JOptionPane.showMessageDialog(null, "Loading of save state failed!\n\nError: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 	}
     }

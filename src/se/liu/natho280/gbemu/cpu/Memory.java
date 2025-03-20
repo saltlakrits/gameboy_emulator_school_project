@@ -130,6 +130,10 @@ public class Memory implements Serializable
         this.timaCycles = wrapperMemory.timaCycles;
         this.validROM = wrapperMemory.validROM;
 
+        // If a ROM isn't loaded already, we need an empty object to unpack the state into
+        if (this.rom == null) {
+            this.rom = new ROM();
+        }
         this.rom.restoreState(serializationWrapper, mbcListeners);
     }
 

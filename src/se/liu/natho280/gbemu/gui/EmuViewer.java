@@ -101,7 +101,11 @@ public class EmuViewer implements DebuggerListener {
                 synchronized (cpu.lock()) {
                     SerializationWrapper serializationWrapper = new SerializationWrapper(loadPath);
 
-                    this.memory.restoreState(serializationWrapper);
+                    try {
+                        this.memory.restoreState(serializationWrapper);
+                    } catch (NullPointerException e) {
+                        return;
+                    }
                     this.cpu.restoreState(serializationWrapper);
                 }
 
