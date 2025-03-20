@@ -18,7 +18,7 @@ import java.util.logging.Level;
  */
 public class MemoryViewer implements MBCListener, RegisterListener {
 
-    private final JFrame frame = new JFrame("Memory Viewer");
+    private final JFrame frame = new JFrame("Debugger");
     private final MemoryTable memoryTable;
     private final DisassemblyTable disassemblyTable;
     private final RegisterTable registerTable;

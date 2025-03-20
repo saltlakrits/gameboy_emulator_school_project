@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/JavaOO.iml" filepath="$PROJECT_DIR$/JavaOO.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gbEmu.iml" filepath="$PROJECT_DIR$/gbEmu.iml" />
     </modules>
   </component>
 </project>
