@@ -213,7 +213,10 @@ public class CPU implements Serializable {
      * @return cycles it took to finish an instruction
      */
     public int runCycle() {
-        if (haltBugCounter == 1) regs.addPC(-1);
+        if (haltBugCounter == 1) {
+            regs.addPC(-1);
+            haltBugCounter++;
+        }
 
         // A:01 F:Z-HC BC:0013 DE:00d8 HL:014d SP:fffe PC:0100
         // F:ZNHC
@@ -261,7 +264,6 @@ public class CPU implements Serializable {
             cycles = 0;
             return returnCycles;
         }
-        if (halted) return 0;
 
         int instruction = memory.read(regs.get(Reg.PC));
 
@@ -649,10 +651,10 @@ public class CPU implements Serializable {
                 } else if (secondNibble >= 0x8) {
                     regs.set(Reg.A, sourceRegValue);
                 } else {
-                    // TODO HALT instruction!
+                    // HALT
                     halted = true;
                     if (!interruptsEnabled && (memory.read(0xFF0F) & memory.read(0xFFFF)) != 0) {
-                        if (haltBugCounter == 1) {
+                        if (haltBugCounter == 2) {
                             haltBugCounter = 0;
                             halted = false;
                         } else {
