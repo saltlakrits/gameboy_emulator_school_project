@@ -1,7 +1,10 @@
 # gbEmu
 gbEmu är en Game Boy-emulator, som alltså låter en ladda Game Boy-spel (lättast med filändelsen ".gb") och spela dem. Även avlusningsverktyg finns i programmet, som används för att utveckla programmet men också kan vara intressant för den nyfikne, eller den som skrivit sitt egna Game Boy-spel.
+
 När du öppnar programmet är inget spel laddat. En uppsättning testprogram som demonstrerar att processorinstruktionerna fungerar följer med, men för att prova att spela något spel måste användaren tillhandahålla en ROM-fil själv.
+
 För att ladda en ROM-fil högerklickar man på fönstret och väljer "Load ROM", eller trycker på F4-knappen på tangentbordet. I högerklicksmenyn finns även andra alternativ, som att spara eller ladda emulatorns tillstånd till fil, stega genom programmet, eller öppna det utökade avlusningsfönstret. Obs: Om tillståndet sparas till fil är det lättast att ge filen ändelsen ".state", för att underlätta att hitta dem. Du behöver inte först ladda en ROM-fil om du ämnar ladda en tillståndsfil, och tillståndsfilen behöver inte heller matcha inladdad ROM-fil, om en finns.
+
 Avlusningsfönstret består av:
 - En disassemblyvy (på vänster sida) av ROM-filen och resten av minnet, men observera att majoriteten av minnet förbi adressen $7FFF inte tillhör ROM-filen och i stället är arbetsminne. Med andra ord är detta en vy av instruktionerna från programfilen översatta till den motsvarande assembly-instruktionen. När man pausar emulatorn, eller stegar genom programmet, markeras instruktionen som emulatorn befinner sig på.
 - En vy av alla processorns register (övre högra hörnet) och vad som finns i dem. Dessa uppdateras endast när emulatorn är pausad.
