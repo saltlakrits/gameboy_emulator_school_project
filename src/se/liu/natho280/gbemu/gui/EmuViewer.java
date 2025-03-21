@@ -19,6 +19,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.HexFormat;
 import java.util.logging.Level;
@@ -26,7 +28,7 @@ import java.util.logging.Level;
 /**
  * The frontend window that displays the emulator screen and receives the input from the user.
  */
-public class EmuViewer implements DebuggerListener, ComponentListener
+public class EmuViewer implements DebuggerListener, ComponentListener, WindowListener
 {
     // Frontend for the emulator
 
@@ -49,10 +51,16 @@ public class EmuViewer implements DebuggerListener, ComponentListener
         }
         displayComponent = new DisplayComponent(display);
         frame.addComponentListener(this);
+        frame.addWindowListener(this);
         frame.getContentPane().setBackground(Color.BLACK);
 
         // TODO Allow resizing or setting scale factor manually in a settings menu or similar
 //        frame.setResizable(false);
+    }
+
+    private void saveRAM() {
+        // save the RAM memory
+        this.memory.saveRAM();
     }
 
     /**
@@ -366,6 +374,22 @@ public class EmuViewer implements DebuggerListener, ComponentListener
 
     @Override public void componentHidden(final ComponentEvent e) {}
 
+    @Override public void windowOpened(final WindowEvent e) {}
+
+    @Override public void windowClosing(final WindowEvent e) {
+        saveRAM();
+    }
+
+    @Override public void windowClosed(final WindowEvent e) {}
+
+    @Override public void windowIconified(final WindowEvent e) {}
+
+    @Override public void windowDeiconified(final WindowEvent e) {}
+
+    @Override public void windowActivated(final WindowEvent e) {}
+
+    @Override public void windowDeactivated(final WindowEvent e) {}
+
     private class LoadROMAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
@@ -464,6 +488,7 @@ public class EmuViewer implements DebuggerListener, ComponentListener
     private class ExitAction extends AbstractAction
     {
         @Override public void actionPerformed(final ActionEvent e) {
+            saveRAM();
             System.exit(0);
         }
     }

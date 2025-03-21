@@ -386,15 +386,17 @@ public class CPU implements Serializable {
             case 0x1:
                 switch (secondNibble) {
                     case 0x0:
-                        regs.addPC(1);
+//                        regs.addPC(1);
                         if (d8 == 0x00) {
                             // TODO!
                             // If the RESET terminal goes LOW in STOP mode, it becomes that of a normal reset status.
                             // The following conditions should be met before a STOP instruction is executed and stop mode is entered:
                             // All interrupt-enable (IE) flags are reset.
                             // Input to P10-P13 is LOW for all.
+
+                            // No licensed games make use of this instruction, so its implementation has been ignored for now.
                         }
-                        System.out.println("0x10 instruction");
+                        CuteLogger.log(Level.SEVERE, "0x10 instruction (STOP) @ PC: " + (regs.get(Reg.PC) - 1) + " is unused in all licensed games!\nAs such, this was most likely the result of something going wrong!");
                         break;
                     case 0x1:
                         // cycles: 3, bytes: 3, LD r16, d16

@@ -431,4 +431,8 @@ public class Memory implements Serializable
         // drop ROM, reinit
         return rom.getMBCListeners();
     }
+
+    public void saveRAM() {
+        if (this.rom != null) this.rom.saveRAM();
+    }
 }

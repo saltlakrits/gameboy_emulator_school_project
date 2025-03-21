@@ -1,5 +1,6 @@
 package se.liu.natho280.gbemu.rom;
 
+import se.liu.natho280.gbemu.cpu.UnsignedByte;
 import se.liu.natho280.gbemu.serialization.MBCType;
 import se.liu.natho280.gbemu.serialization.SerializableMBC;
 
@@ -29,6 +30,12 @@ public class MBC0 extends AbstractMBC {
 
     @Override public boolean getRamEnabled() {
         return false;
+    }
+
+    @Override public void saveRAM(final String fileName, final UnsignedByte[] ram) {}
+
+    @Override public UnsignedByte[] loadRAM(final String fileName) {
+        return null;
     }
 
 }

@@ -10,7 +10,8 @@ Avlusningsfönstret består av:
 - En vy av alla processorns register (övre högra hörnet) och vad som finns i dem. Dessa uppdateras endast när emulatorn är pausad.
 - En vy av alla brytpunkter (under registervyn), som man kan lägga till brytpunkter i genom panelen i avlusningsfönstret (under "Debug") alternativt genom att trycka på F9 (lägg till brytpunk) och F10 (ta bort brytpunkt). Under "Debug" kan man även ta bort samtliga skapade brytpunkter på en gång. När brytpunkter är satta kommer emulatorn automatiskt pausas när programräknaren når brytpunktens adress.
 - En vy av minnet, och vad som finns i varje adress (nedre halvan av fönstret). Observera att adresserna $0000 till $7FFF tillhör ROM-filen, och därför oftast är mer lämpliga att läsas av som instruktioner i disassemblyvyn snarare än numeriska värden i minnesvyn.
-  Observera att gbEmu inte ännu stödjer ljud!  Det saknas ävem stöd för spel som använder någon annan memory bank controller än MBC1, alternativt ingen alls. Spel som kan spara går bra att spela, men själva sparandet fungerar inte. Om man vill spara spelet kan man i stället spara emulatorns tillstånd till fil. I slutet av dokumentationen finns en lista på bekräftat fungerande spel.
+  Observera att gbEmu inte ännu stödjer ljud!  Det saknas ävem stöd för spel som använder någon annan memory bank controller än MBC1, alternativt ingen alls. I slutet av dokumentationen finns en lista på bekräftat fungerande spel.
+- 
 ### Kontroller för spel:
 + WASD: pil-knapparna
 + O: A-knappen

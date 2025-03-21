@@ -1,5 +1,6 @@
 package se.liu.natho280.gbemu.rom;
 
+import se.liu.natho280.gbemu.cpu.UnsignedByte;
 import se.liu.natho280.gbemu.debugger.MBCListener;
 import se.liu.natho280.gbemu.serialization.SerializableMBC;
 
@@ -32,4 +33,8 @@ public abstract class AbstractMBC implements Serializable
     abstract public AbstractMBC copy();
 
     abstract public boolean getRamEnabled();
+
+    abstract public void saveRAM(final String fileName, final UnsignedByte[] ram);
+
+    abstract public UnsignedByte[] loadRAM(final String fileName);
 }

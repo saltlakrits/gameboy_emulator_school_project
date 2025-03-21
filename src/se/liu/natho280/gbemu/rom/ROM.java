@@ -7,6 +7,7 @@ import se.liu.natho280.gbemu.cpu.UnsignedByte;
 import se.liu.natho280.gbemu.debugger.MBCListener;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -22,6 +23,8 @@ public class ROM implements Serializable {
 
     private static final int RAM_BANK_SIZE = 0x2000; // 8 KiB
     private transient AbstractMBC mbc = null; // MBC is read from 0x147
+    private String romPath;
+    private boolean battery = false;
 
     // ROM size is read from 0x148, but we can just allocate the maximum possible (1.5 MiB)
     private UnsignedByte[] rom = new UnsignedByte[0x180_000];
@@ -30,13 +33,16 @@ public class ROM implements Serializable {
 
     public ROM(String romPath) throws IllegalArgumentException {
 
+        // set ROM name
+        this.romPath = extractROMpath(romPath);
+
         // load rom
         loadROM(romPath);
 
         // choose MBC
         selectMBC();
 
-        // pick RAM size
+	// pick RAM size
 
         CuteLogger.log(Level.INFO, "Ram size in header: " + rom[0x149].get());
         switch (rom[0x149].get()) {
@@ -63,11 +69,36 @@ public class ROM implements Serializable {
 
         // If no save file found, but there is ram:
         if (ram != null) {
-            for (int i = 0; i < ram.length; i++) {
-                // initialize RAM
-                ram[i] = new UnsignedByte(0);
+            // check if there is a save file
+            if (battery && new File(this.romPath + ".sav").exists()) {
+                loadRAM();
+            } else {
+                // if there is no save file, init RAM
+                for (int i = 0; i < ram.length; i++) {
+                    // initialize RAM
+                    ram[i] = new UnsignedByte(0);
+                }
             }
-            // else load save file into ram:
+        }
+    }
+
+    public ROM() {}
+
+    /**
+     * Extracts the rom path without the file extension
+     * @param romPath path to ROM file, including file extension, if there is one
+     * @return romPath without the file extension, if there was one
+     */
+    private String extractROMpath(String romPath) {
+        String[] splitPath = romPath.split("\\.");
+        if (splitPath.length > 2) {
+            romPath = "";
+            for (int i = 0; i < splitPath.length - 1; i++) {
+                romPath += splitPath[i];
+            }
+            return romPath;
+        } else {
+            return splitPath[0];
         }
     }
 
@@ -77,9 +108,19 @@ public class ROM implements Serializable {
                 CuteLogger.log(Level.INFO, "Picked MBC0.");
                 this.mbc = new MBC0();
                 break;
-            case 1, 2, 3:
+            case 1:
+
                 CuteLogger.log(Level.INFO, "Picked MBC1.");
                 this.mbc = new MBC1(romBankNumber(rom[0x148].get()));
+                break;
+            case 2:
+                CuteLogger.log(Level.INFO, "Picked MBC1 + RAM.");
+                this.mbc = new MBC1(romBankNumber(rom[0x148].get()));
+                break;
+            case 3:
+                CuteLogger.log(Level.INFO, "Picked MBC1 + RAM + Battery.");
+                this.mbc = new MBC1(romBankNumber(rom[0x148].get()));
+                this.battery = true;
                 break;
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
@@ -87,12 +128,12 @@ public class ROM implements Serializable {
         }
     }
 
-    public ROM() {}
-
     public void restoreState(SerializationWrapper serializationWrapper, List<MBCListener> mbcListeners) {
         ROM serializedROM = serializationWrapper.getMemory().getROM();
         this.rom = serializedROM.rom;
         this.ram = serializedROM.ram;
+        this.romPath = serializedROM.romPath;
+        this.battery = serializedROM.battery;
 
         this.mbc = serializationWrapper.getMBC();
         for (MBCListener listener : mbcListeners) {
@@ -215,5 +256,26 @@ public class ROM implements Serializable {
 
     public void reset() {
         selectMBC();
+    }
+
+    /**
+     * Save RAM to disk, for games that implement saving
+     */
+    public void saveRAM() {
+        if (this.ram != null && battery) this.mbc.saveRAM(romPath, this.ram);
+    }
+
+    /**
+     * Load RAM from disk
+     */
+    public void loadRAM() {
+        UnsignedByte[] ram = null;
+        if (this.ram != null) {
+            ram = this.mbc.loadRAM(romPath);
+        }
+
+        if (ram != null) {
+            this.ram = ram;
+        }
     }
 }

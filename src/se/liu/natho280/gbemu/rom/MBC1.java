@@ -1,10 +1,18 @@
 package se.liu.natho280.gbemu.rom;
 
+import com.google.gson.Gson;
 import se.liu.natho280.gbemu.CuteLogger;
+import se.liu.natho280.gbemu.cpu.UnsignedByte;
 import se.liu.natho280.gbemu.debugger.MBCListener;
 import se.liu.natho280.gbemu.serialization.MBCType;
 import se.liu.natho280.gbemu.serialization.SerializableMBC;
 
+import javax.swing.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.logging.Level;
 
 /**
@@ -64,6 +72,30 @@ public class MBC1 extends AbstractMBC {
 
     public boolean getRamEnabled() {
         return ramEnabled;
+    }
+
+    @Override public void saveRAM(final String fileName, final UnsignedByte[] ram) {
+        Gson gson = new Gson();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName + ".sav"))) {
+            gson.toJson(ram, writer);
+        } catch (IOException e) {
+	    CuteLogger.log(Level.SEVERE, "Failed to save RAM! Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Failed to save RAM! Error: " + e.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
+	}
+    }
+
+    @Override public UnsignedByte[] loadRAM(final String fileName) {
+        Gson gson = new Gson();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName + ".sav"))) {
+            CuteLogger.log(Level.INFO, "Loading RAM from file: " + fileName + ".sav");
+            return gson.fromJson(reader, UnsignedByte[].class);
+        } catch (IOException e) {
+            CuteLogger.log(Level.SEVERE, "Failed to load RAM! Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Failed to load RAM! Error: " + e.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
     }
 
     @Override
