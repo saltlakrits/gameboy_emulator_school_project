@@ -8,6 +8,15 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * <p>The MBCs (Memory Bank Controllers) were chips in the cartridges that could switch between memory banks. The Game Boy cartridges contained
+ * memory that could exceed the number of available addresses, and as such MBCs would let you determine which part of the cartridge ROM
+ * was available at a given time. Since they can differ internally, but will always offer the same functionality on the outside,
+ * an abstract class is a perfect choice for the project. A ROM will always have an MBC, but the MBC can do anything between nothing and
+ * re-routing the addresses to different banks, have internal clocks, et cetera.</p>
+ *
+ * <p>More can be read at <a href=https://gbdev.io/pandocs/MBCs.html>MBCs - Pan Docs</a>.</p>
+ */
 public abstract class AbstractMBC implements Serializable
 {
     protected transient List<MBCListener> mbcListeners = new ArrayList<>();

@@ -21,16 +21,6 @@ public class SerializableMBC {
 	this.mbcThings = mbcThings;
     }
 
-    public SerializableMBC(MBCType type) {
-	// should only work for MBC0
-	if (type != MBCType.MBC0) {
-	    // maybe we don't need to kill the program, w/e
-	    CuteLogger.log(Level.SEVERE, "Invalid MBC type.");
-	    System.exit(-1);
-	}
-	this.type = type;
-    }
-
     public AbstractMBC getMBC() {
 	switch (type) {
 	    case MBC0:

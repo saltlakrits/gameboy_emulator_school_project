@@ -11,7 +11,7 @@ import java.util.logging.Level;
 /**
  * 'Main' class for use in fetching, decoding and executing instructions from the ROM.
  */
-public class CPU implements Serializable {
+public class CPU extends Registers implements Serializable {
     // this is the emulator class, that will have the logic one step above the hardware (kind of)
     // this class is what ultimately utilizes the smaller hardware components to fetch, decode and execute instructions.
     private transient Memory memory; // FIXME We are doing this separately, fix!
@@ -23,7 +23,9 @@ public class CPU implements Serializable {
     private boolean halted = false;
     private int haltBugCounter = 0;
 
-    // For synchronizing
+    /**
+     * For synchronizing the CPU with UI ROM-changing and save/load state functionality
+      */
     private Object lock = new Object();
 
     /**
@@ -54,6 +56,10 @@ public class CPU implements Serializable {
         return this.regs.copy();
     }
 
+    /**
+     * Restores CPU and register state from a state file
+     * @param serializationWrapper
+     */
     public void restoreState(final SerializationWrapper serializationWrapper) {
         CPU serializedCPU = serializationWrapper.getCPU();
         this.halted = serializedCPU.halted;
@@ -73,6 +79,9 @@ public class CPU implements Serializable {
         return regs.get(Reg.PC);
     }
 
+    /**
+     * Pushes program counter to stack and modifies stack pointer appropriately
+     */
     public void pushPC() {
         // push PC to stack
         regs.decSP();
@@ -81,6 +90,9 @@ public class CPU implements Serializable {
         memory.write(regs.get(Reg.SP), (regs.get(Reg.PC)) & 0xFF);
     }
 
+    /**
+     * Pops program counter from the stack and modifies stack pointer appropriately
+     */
     public void popPC() {
         // pop PC from stack
         int newPC = memory.read(regs.get(Reg.SP));
@@ -90,6 +102,11 @@ public class CPU implements Serializable {
         regs.set(Reg.PC, newPC);
     }
 
+    /**
+     * Un-sets the interrupt flag bit with the passed in bit-index
+     * @param bit
+     * @param interruptFlags
+     */
     private void unsetInterruptFlagBit(int bit, int interruptFlags) {
         memory.write(0xFF0F, (interruptFlags & ((1 << bit) ^ 0xFF)));
     }
@@ -194,6 +211,10 @@ public class CPU implements Serializable {
         }
     }
 
+    /**
+     * Returns lock object for use outside CPU class
+     * @return
+     */
     public Object lock() {
         return this.lock;
     }
@@ -217,46 +238,6 @@ public class CPU implements Serializable {
             regs.addPC(-1);
             haltBugCounter++;
         }
-
-        // A:01 F:Z-HC BC:0013 DE:00d8 HL:014d SP:fffe PC:0100
-        // F:ZNHC
-
-//        class Hex {
-//            public static String toHex(int number, boolean twoDigits) {
-//                return String.format(twoDigits ? "%02x" : "%04x", number);
-//            }
-//
-//            public static String toHex(int number) {
-//                return String.format("%04x", number);
-//            }
-//
-//        }
-
-//        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("logInstructions.txt", true))) {
-//            StringBuilder sb = new StringBuilder();
-//            // A register
-//            sb.append("A:").append(Hex.toHex(regs.get(Reg.A), true).toUpperCase()).append(" ");
-//            // Flags
-//            sb.append("F:").append(regs.getZeroFlag() == 1 ? "Z" : "-");
-//            sb.append(regs.getSubtractionFlag() == 1 ? "N" : "-");
-//            sb.append(regs.getHalfcarryFlag() == 1 ? "H" : "-");
-//            sb.append(regs.getCarryFlag() == 1 ? "C" : "-").append(" ");
-//            // BC reg
-//            sb.append("BC:").append(Hex.toHex(regs.get(Reg.BC))).append(" ");
-//            // DE reg
-//            sb.append("DE:").append(Hex.toHex(regs.get(Reg.DE))).append(" ");
-//            // HL reg
-//            sb.append("HL:").append(Hex.toHex(regs.get(Reg.HL))).append(" ");
-//            // SP
-//            sb.append("SP:").append(Hex.toHex(regs.get(Reg.SP))).append(" ");
-//            // PC
-//            sb.append("PC:").append(Hex.toHex(regs.get(Reg.PC)));
-//            sb.append("\n");
-//
-//            bos.write(sb.toString().getBytes());
-//        } catch (IOException ex) {
-//            CuteLogger.log(Level.WARNING, ex.getMessage());
-//        }
 
         // Check & handle interrupts -- I think this should work?
         if (handleInterrupts()) {
@@ -298,6 +279,7 @@ public class CPU implements Serializable {
             sourceRegValue = regs.get(sourceReg);
         }
 
+        // Decode instruction
         switch (firstNibble) {
             case 0x0:
                 switch (secondNibble) {

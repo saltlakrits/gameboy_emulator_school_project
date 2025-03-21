@@ -128,7 +128,6 @@ public class MBC1 extends AbstractMBC {
     public void write(int address, int value) {
         if (address <= 0x1FFF) {
             // RAM enable register
-//            System.out.println("Writing 0x" + Integer.toHexString(address).toUpperCase() + " to RAM enable");
             if (value == 0xA) {
                 ramEnabled = true;
             } else {
@@ -136,16 +135,13 @@ public class MBC1 extends AbstractMBC {
             }
         } else if (address <= 0x3FFF) {
             // ROM bank number
-            //System.out.println("switching to bank " + Integer.toHexString(value).toUpperCase());
             this.romBank = (value & 0x1F) % numberOfBanks;
         } else if (address <= 0x5FFF) {
             // RAM bank number --OR-- upper bits of ROM bank number
             if (numberOfBanks >= 64) this.highBank = value & 0x3;
             else this.ramBank = (value & 0x3);
-            //System.out.println("Wrote " + Integer.toHexString(value).toUpperCase() + " to upper bank thing");
         } else {
             // Banking mode select
-            //System.out.println("Setting banking mode to " + (value == 0 ? "simple" : "advanced"));
             this.advancedBankingMode = value != 0;
         }
 

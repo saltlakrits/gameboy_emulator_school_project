@@ -82,6 +82,9 @@ public class MemoryTable implements MemoryListener {
         // memoryTable.changeSelection(index / 16, (index % 16) + 1, false, false);
     }
 
+    /**
+     * The timers update very often! This method is used to update the timers only once per frame, instead of every time they update.
+     */
     public void updateTimersInDebugger() {
         // FF04 == div, FF05 = tima
         tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(0xFF04)), 0xFF04 / 16, (0xFF04 % 16) + 1);

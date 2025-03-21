@@ -5,9 +5,6 @@ package se.liu.natho280.gbemu.cpu;
  * @see Unsigned
  */
 public class UnsignedByte extends Unsigned {
-
-    // unsigned byte, values range between 0 and 255
-
     public UnsignedByte(int value) {
         super(value);
     }

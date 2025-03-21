@@ -7,6 +7,11 @@ package se.liu.natho280.gbemu.cpu;
 public enum Reg {
     A, F, AF, B, C, BC, D, E, DE, H, L, HL, SP, PC;
 
+    /**
+     * Stringifies a given register label
+     * @param reg
+     * @return
+     */
     public static String toString(Reg reg) {
         return switch (reg) {
             case A -> "A";
@@ -24,9 +29,5 @@ public enum Reg {
             case SP -> "SP";
             case PC -> "PC";
         };
-    }
-
-    public static void main(String[] args) {
-        System.out.println(Reg.toString(Reg.HL));
     }
 }

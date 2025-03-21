@@ -33,7 +33,7 @@ public class MemoryViewer implements MBCListener, RegisterListener {
 
     private final List<Integer> breakpoints = new ArrayList<>();
 
-    public MemoryViewer(Memory memory, Registers regs, boolean showDebugger) {
+    public MemoryViewer(Memory memory, Registers regs) {
         memory.addMBCListener(this);
         regs.addRegisterListener(this);
 
@@ -42,13 +42,14 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         this.registerTable = new RegisterTable(regs);
         this.breakpointTable = new BreakpointTable();
 
-        this.emulatorPaused = showDebugger;
-
         create();
 
-        frame.setVisible(showDebugger);
+        frame.setVisible(false);
     }
 
+    /**
+     * Adds a breakpoint to both the internal list and the UI
+     */
     public void addBreakpoint() {
         try {
             int newBreakpointAddress = Integer.parseInt(JOptionPane.showInputDialog(frame, "Address for new breakpoint:"), 16);
@@ -60,6 +61,9 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         }
     }
 
+    /**
+     * Removes a breakpoint from both the internal list and the UI
+     */
     public void removeBreakpointIndex() {
         try {
             int index = Integer.valueOf(JOptionPane.showInputDialog(frame, "Index to remove:", getBreakpoints().size())) - 1;
@@ -70,6 +74,9 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         }
     }
 
+    /**
+     * Removes all breakpoints from the internal list and the UI
+     */
     public void clearBreakpoints() {
         breakpoints.clear();
         breakpointTable.clear();
@@ -79,6 +86,11 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         return new ArrayList<>(breakpoints);
     }
 
+    /**
+     * Checks if the breakpoint list contains the passed in address. Used to determine whether a breakpoint has been reached and
+     * emulation should be halted.
+     * @param address
+     */
     public void checkBreakpoints(int address) {
         if (breakpoints.contains(address)) {
             new ToggleDebuggingAction().actionPerformed(null);
@@ -103,9 +115,10 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         this.emulatorPaused = emulatorPaused;
     }
 
-    public void create() {
-//        memoryTableScrollPane.setViewportView(memoryTableScrollPane);
-//        frame.setResizable(false);
+    /**
+     * Helper method for constructor.
+     */
+    private void create() {
         frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         makeBar();
@@ -201,6 +214,9 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         frame.setJMenuBar(menuBar);
     }
 
+    /**
+     * Show/hide the window without disposing it. Also pauses/resumes emulation appropriately.
+     */
     public void toggleVisibility() {
         frame.setVisible(!frame.isVisible());
         this.emulatorPaused = frame.isVisible();
@@ -215,6 +231,9 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         return this.shouldStep;
     }
 
+    /**
+     * Toggle pause for emulation.
+     */
     public void toggleDebugging() {
         this.emulatorPaused = !this.emulatorPaused;
 
@@ -232,6 +251,9 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         this.shouldStep = true;
     }
 
+    /**
+     * After a step (and some other edge case situations) we should update the debugging view. This method handles that.
+     */
     public void postStepUpdate() {
         this.shouldStep = false;
         if (bankSwitched) this.disassemblyTable.redisassembleROM();
@@ -243,6 +265,10 @@ public class MemoryViewer implements MBCListener, RegisterListener {
         memoryTable.updateTimersInDebugger();
     }
 
+    /**
+     * When the ROM bank switches, we need to redisassemble the ROM to make it reflect what is currently "visible" to the Game Boy.
+     * This method sets a flag that is checked after steps, since we don't want to redisassemble the ROM each step unconditionally.
+     */
     public void bankSwitched() {
         this.bankSwitched = true;
     }

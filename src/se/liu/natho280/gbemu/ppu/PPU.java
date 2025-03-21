@@ -35,7 +35,6 @@ public class PPU {
     private final StatLine statLine = new StatLine();
     private int flags = 0;
     private final List<OAM> lineOAMs = new ArrayList<>();
-    private int lastScanline = 0;
 
     // these lacked performance
     // NOTE: they probably didn't, we just ran the PPU way too frequently (redrawing the same line many times per frame)
@@ -232,27 +231,20 @@ public class PPU {
      * @param ly the current y-coordinate
      */
     public void mode3(int ly) {
-        // this is to avoid redrawing the same scanline
-//        if (ly + 1 == lastScanline) return;
 
         handleStatRegister(StatReg.THREE);
 
         int lcdc = memory.unconditionalRead(0xFF40);
         int wy = memory.unconditionalRead(0xFF4A); // window y start
         int wx = memory.unconditionalRead(0xFF4B) - 7; // window x start + 7 (for some reason)
-//        System.out.println(wx + " " + wy);
-//         if (ly == 0) System.out.println("LY = " + ly + " LCDC: " + Integer.toBinaryString(lcdc));
-//        if (ly == 143) System.out.println("LY = " + ly + " LCDC: " + Integer.toBinaryString(lcdc) + "\n");
         int scy = memory.unconditionalRead(0xFF42); // scroll y
         int scx = memory.unconditionalRead(0xFF43); // scroll x
-        //System.out.println("SCY: " + scy + " SCX: " + scx);
         int palette = memory.unconditionalRead(0xFF47); // 4-color palette
         int sprPal1 = memory.unconditionalRead(0xFF48); // OBP0
         int sprPal2 = memory.unconditionalRead(0xFF49); // OBP1
         // bit 2 of LCD Control flags determine whether sprite height is 8 or 16 pixels.
-//        int spriteHeight = ((lcdc & 0x4) >> 2 == 0) ? 8 : 16;
         int spriteHeight = (lcdc & (1 << 2)) == 0 ? 8 : 16;
-        // when y >= wy && x >= (wx - 7), we should draw window pixels.
+        // note: when y >= wy && x >= (wx - 7), we should draw window pixels.
 
         // for each pixel in the row, determine whether to draw a sprite, the window, or the background
 
@@ -285,14 +277,10 @@ public class PPU {
             // else use mathy fetcherX
             // now determine fetcher coords!
             if (inWindow) {
-                // TODO beep boop
-                //if (ly == 143) System.out.println("woo");
-
                 // use window coords to get window tile!
                 // WE FLUSH THE BG PIXELS AND GET WINDOW PIXELS
                 fetcherY = ly - wy; // i think this is wrong, should be WINDOW_LINE_COUNTER
                 fetcherX = (x - wx) / 8;
-                //System.out.println("Tilemap: " + Integer.toHexString(tilemapAddress).toUpperCase() + ", y: " + ly + ", fetcherY: " + fetcherY + "\nx: " + x + ", fetcherX: " + fetcherX);
             } else {
                 // use mathy coords to get bg tile! note that it is moved by scrolling
                 // NOTE that we still need to drop (scx % 8) pixels at the start of the scanline!!!
@@ -304,7 +292,6 @@ public class PPU {
             // check bg fifo: if size == 0, build it
             if (backgroundFIFO.isEmpty()) {
                 buildBgFifo(lcdc, tilemapAddress, fetcherY, fetcherX);
-//                buildBgFifoTheRevenge(tilemapAddress, fetcherY, fetcherX);
                 // drop (scx % 8) pixels iff we are at the start of the scanline
                 if (x == 0 && !inWindow) {
                     for (int i = 0; i < (scx % 8); i++) {
@@ -328,15 +315,12 @@ public class PPU {
 	    bgInstead = bgInstead || ((lcdc & (1 << 1)) == 0);
             if (bgInstead) {
                 // discard and draw bg instead
-                //System.out.println("Discarded sprite!");
                 candidate = backgroundFIFO.pop();
                 candidate.colorValue = matchPixelColor(candidate.colorValue, palette);
             } else {
                 // we ARE drawing a sprite: fix palette
-                //System.out.println("Drawing a sprite!");
                 backgroundFIFO.pop();
                 candidate.colorValue = matchPixelColor(candidate.colorValue, candidate.palette ? sprPal2 : sprPal1);
-                //if ((lcdc & (1 << 0)) == 0) candidate.colorValue = 0x00; // blank it, bg/window is off
             }
 
             display.putPixel(x, ly, getPixel(candidate.colorValue));
@@ -346,7 +330,6 @@ public class PPU {
         }
         backgroundFIFO.clear();
         spriteFIFO.clear();
-//        lastScanline++;
         setFlag(1);
     }
 
@@ -359,7 +342,6 @@ public class PPU {
     public void vblank() {
         setInterruptBit(Interrupt.VBLANK, true);
         handleStatRegister(StatReg.ONE);
-//        lastScanline = 0;
         setFlag(3);
     }
 
@@ -377,7 +359,7 @@ public class PPU {
                 return (palette & (3 << 6)) >> 6;
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown pixel color: " + pixelColor);
-                System.exit(-1); // like many other issues, unrecoverable
+                System.exit(-1); // should be considered unrecoverable
                 return 0;
         }
     }

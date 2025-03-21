@@ -5,7 +5,6 @@ import com.google.gson.JsonSyntaxException;
 import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.Memory;
-import se.liu.natho280.gbemu.cpu.Registers;
 import se.liu.natho280.gbemu.rom.AbstractMBC;
 
 import javax.swing.*;
@@ -15,10 +14,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 
+/**
+ * Wrapper object (DTO) for save states; packs the important parts of the emulator and serializes them. Will perform the
+ * same thing in reverse.
+ */
 public class SerializationWrapper {
     private static final Gson GSON = new Gson();
     private CPU cpu = null;
-    private Registers registers = null;
     private Memory memory = null;
     private SerializableMBC smbc = null;
 
@@ -26,6 +28,10 @@ public class SerializationWrapper {
 	this.cpu = cpu;
 	this.memory = memory;
 	this.smbc = this.memory.getSerializableMBC();
+	if (this.smbc == null) {
+	    CuteLogger.log(Level.WARNING, "Save state failed because ROM is null");
+	    JOptionPane.showMessageDialog(null, "No ROM loaded!", "Error", JOptionPane.ERROR_MESSAGE);
+	}
     }
 
     public SerializationWrapper(String loadPath) {

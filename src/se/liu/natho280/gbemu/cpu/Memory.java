@@ -62,9 +62,7 @@ public class Memory implements Serializable
         // catch exception
         loadROM(romPath);
 
-        // FIXME some of these addresses may not be "real" memory, but just "magical addresses" that show e.g.
-        //  status of hardware and similar (just like how some of the memory just point to the ROM in the cartridge!).
-        //  As such, this may need to change!
+        // initialize memory
         for (int i = 0; i < memory.length; i++) {
             memory[i] = new UnsignedByte(0);
         }
@@ -113,6 +111,20 @@ public class Memory implements Serializable
         }
     }
 
+//    private List<MBCListener> reInitialize() {
+//        // zero out the memory
+//        for (int i = 0; i < memory.length; i++) {
+//            unconditionalWrite(i + 0x8000, 0);
+//        }
+//
+//        resetDivTimer();
+//        tima = 0;
+//        timaCycles = 0;
+//
+//        // drop ROM, reinit
+//        return rom.getMBCListeners();
+//    }
+
     public boolean hasValidROM() {
         return validROM;
     }
@@ -138,7 +150,7 @@ public class Memory implements Serializable
     }
 
     public SerializableMBC getSerializableMBC() {
-        return this.rom.getSerializableMBC();
+        return (this.rom != null) ? this.rom.getSerializableMBC() : null;
     }
 
     public ROM getROM() {
@@ -400,10 +412,6 @@ public class Memory implements Serializable
         // mask out the old interrupt bit
         newInterruptByte &= ((1 << 4) ^ 0xFF);
 
-        // or in the byte
-//        if ((memory[0xFF00].get() & (1 << bit)) == 0) { // FIXME
-//            memory[0xFF0F].set(newInterruptByte | ((setToHigh ? 1 : 0) << 4)); // FIXME
-//        }
         if ((unconditionalRead(0xFF00) & (1 << bit)) == 0) {
             unconditionalWrite(0xFF0F, newInterruptByte | ((setToHigh ? 1 : 0) << 4));
         }
@@ -418,20 +426,9 @@ public class Memory implements Serializable
         if (this.rom != null) rom.addMBCListener(l);
     }
 
-    private List<MBCListener> reInitialize() {
-        // zero out the memory
-        for (int i = 0; i < memory.length; i++) {
-            unconditionalWrite(i + 0x8000, 0);
-        }
-
-        resetDivTimer();
-        tima = 0;
-        timaCycles = 0;
-
-        // drop ROM, reinit
-        return rom.getMBCListeners();
-    }
-
+    /**
+     * Calls method on the ROM, if it isn't null. Used by classes higher in the hierarchy.
+     */
     public void saveRAM() {
         if (this.rom != null) this.rom.saveRAM();
     }

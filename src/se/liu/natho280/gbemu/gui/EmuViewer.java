@@ -35,27 +35,21 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
     private CPU cpu;
     private Memory memory;
     private Display display;
-    private final JFrame frame = new JFrame("gbEmu");
+    private final JFrame frame = new JFrame("gbEmu (load a ROM)");
     private final JPopupMenu popupMenu = new JPopupMenu();
     private final MemoryViewer memoryViewer;
     private final DisplayComponent displayComponent;
 
-    public EmuViewer(CPU cpu, Memory memory, Display display, MemoryViewer memoryViewer, boolean showDebuggerAtStartup) {
+    public EmuViewer(CPU cpu, Memory memory, Display display, MemoryViewer memoryViewer) {
         this.cpu = cpu;
         this.memory = memory;
         this.display = display;
         this.memoryViewer = memoryViewer;
         memoryViewer.addDebuggerListener(this);
-        if (showDebuggerAtStartup) {
-            frame.setTitle("gbEmu (paused)");
-        }
         displayComponent = new DisplayComponent(display);
         frame.addComponentListener(this);
         frame.addWindowListener(this);
         frame.getContentPane().setBackground(Color.BLACK);
-
-        // TODO Allow resizing or setting scale factor manually in a settings menu or similar
-//        frame.setResizable(false);
     }
 
     private void saveRAM() {
@@ -87,10 +81,15 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
                 this.memoryViewer.redisassemble();
             }
 
+            frame.setTitle("gbEmu");
             memoryViewer.clearBreakpoints();
         }
     }
 
+    /**
+     * For game resetting. Reinitializes the memory and the debugging UI, and basically sets the emulator back to the initial state it has
+     * upon initially loading a game.
+     */
     public void resetROM() {
         synchronized (cpu.lock()) {
             this.memory.reInitializeMemory(); // reinitialize memory (zero it out), inside it reInit ROM as well?
@@ -103,6 +102,9 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
         }
     }
 
+    /**
+     * Used to recover the saved state from a file
+     */
     public void loadState() {
         // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
         JFileChooser fc = new JFileChooser();
@@ -127,10 +129,14 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
                     this.cpu.restoreState(serializationWrapper);
                 }
 
+                frame.setTitle("gbEmu");
                 memoryViewer.forceRedisassemble();
             }
     }
 
+    /**
+     * Used to save the emulator state to a file
+     */
     public void saveState() {
         // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
         JFileChooser fc = new JFileChooser();
@@ -262,6 +268,9 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
         }
     }
 
+    /**
+     * Builds the right-click menu for the main emulator window
+     */
     private void makePopupMenu() {
         frame.addMouseListener(new MouseListener() {
 
@@ -355,6 +364,11 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
         popupMenu.add(exit);
     }
 
+    /**
+     * Runs when the main window is resized; recalculates a new scale factor (uses integer scaling) for the game graphics and places the
+     * screen in the center of the window.
+     * @param e the event to be processed
+     */
     @Override public void componentResized(final ComponentEvent e) {
         Dimension size = frame.getContentPane().getSize();
         int scaleHeight = size.height / 144;

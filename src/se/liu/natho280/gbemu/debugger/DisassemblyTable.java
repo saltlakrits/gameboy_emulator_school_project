@@ -96,8 +96,6 @@ public class DisassemblyTable {
 
     /**
      * Disassembles a single instruction at the memory address passed it, and adds it to the disassemblyTableModel.
-     * TODO Maybe generalize this so it can be used for replacing single lines? Programs can write functions to HRAM
-     *  and we can also switch ROM banks.
      * @param programCounter
      * @return updated programCounter after disassembling an instruction
      */

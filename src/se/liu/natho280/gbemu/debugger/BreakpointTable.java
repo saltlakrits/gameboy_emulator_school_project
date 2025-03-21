@@ -14,6 +14,9 @@ public class BreakpointTable {
 	create();
     }
 
+    /**
+     * Creates the BreakpointTable, simply a helper function for the constructor
+     */
     private void create() {
 
 	JTable breakpointTable = new JTable(this.breakpointTableModel) {
@@ -29,6 +32,10 @@ public class BreakpointTable {
 	this.breakpointTableScrollPane = new JScrollPane(breakpointTable);
     }
 
+    /**
+     * Retrieves the JScrollPane for displaying in the UI
+     * @return
+     */
     public JScrollPane getBreakpointScrollPane() {
 	return this.breakpointTableScrollPane;
     }
@@ -56,6 +63,9 @@ public class BreakpointTable {
 	}
     }
 
+    /**
+     * Clears out the breakpoint table of all entries
+     */
     public void clear() {
 	breakpointTableModel.setRowCount(0);
     }

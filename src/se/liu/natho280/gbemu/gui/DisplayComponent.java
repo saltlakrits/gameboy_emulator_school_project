@@ -66,9 +66,12 @@ public class DisplayComponent extends JComponent implements DisplayListener {
         return preferredSize;
     }
 
+    /**
+     * Upon resizing the main window, this method is used to recalculate the scale factor of the game graphics
+     * @param scalingFactor
+     */
     public void setScalingFactor(int scalingFactor) {
         this.scalingFactor = scalingFactor;
         this.preferredSize.setSize(160 * scalingFactor, 144 * scalingFactor);
-//        System.out.println("setScalingFactor: " + scalingFactor);
     }
 }

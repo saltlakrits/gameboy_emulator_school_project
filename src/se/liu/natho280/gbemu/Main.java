@@ -25,30 +25,20 @@ public class Main {
 
     public static void main(String[] args) {
 
+        // FlatLaf is just a look-and-feel that looks prettier than the default. Nothing *really* depends on this library, and this is
+        // effectively the only time it is mentioned in the project. Will make all swing components look modern & uniform.
         FlatLightLaf.setup();
-
-        /*
-        TODO
-
-        Bug fixes for Ducktales, Tetris score, Gargoyle's Quest?
-
-        Finish MBC1, make MBC3, saving
-
-        Sound?
-         */
 
         Display display = new Display(); // display is shared between ppu and frontend
         Memory memory = new Memory();
         Registers registers = new Registers();
 
-        // TODO Consider removing the boolean parameter
-        MemoryViewer memoryViewer = new MemoryViewer(memory, registers, false);
+        MemoryViewer memoryViewer = new MemoryViewer(memory, registers);
 
         CPU cpu = new CPU(memory, registers);
         cpu.setUpBoot();
 
-        // TODO Consider removing the boolean parameter
-        EmuViewer emuViewer = new EmuViewer(cpu, memory, display, memoryViewer, false);
+        EmuViewer emuViewer = new EmuViewer(cpu, memory, display, memoryViewer);
         emuViewer.show();
 
         PPU ppu = new PPU(display, memory);
@@ -70,7 +60,6 @@ public class Main {
                             memoryViewer.postStepUpdate();
                         } else if (!memoryViewer.getEmulatorPaused()) {
                             cycles = cpuCycle(cpu);
-                            // TODO Check that it finds everything!
                             memoryViewer.checkBreakpoints(cpu.getPC());
                         } else {
                             cycles = 0;
@@ -91,6 +80,11 @@ public class Main {
         }
     }
 
+    /**
+     * Runs a CPU cycle if appropriate (not halted).
+     * @param cpu
+     * @return
+     */
     private static int cpuCycle(CPU cpu) {
         int cycles;
         if (!cpu.getHalted()) {
@@ -105,9 +99,11 @@ public class Main {
     }
 
     /**
-     * The dots passed in will range from 0 to roughly 70000, and the ppuCycle method should match the argument to
+     * <p>The dots passed in will range from 0 to roughly 70000, and the ppuCycle method should match the argument to
      * what the {@link PPU} is supposed to be working on in that moment. Liberties are taken, but the timing is
-     * sufficient to play a lot of games.
+     * sufficient to play a lot of games.</p>
+     * <p>The VRAM should be locked in different spots, but implementing this behavior REQUIRES very careful timing
+     * that we do not currently have.</p>
      * @param dots the current dot (T-cycle) count of the frame
      */
     public static void ppuCycle(int dots, PPU ppu, Memory memory) {
@@ -123,7 +119,6 @@ public class Main {
 
         // the FIRST time we get to vblank, ppu.flags will be non-nil, so we use that to detect reaching vblank
         // we should set vblank interrupt and STAT
-        // TODO Rename or clarify checkFlags
         if (ly == 143 && ppu.checkFlags() && !ppu.getFlag(3)) {
             // vblank interrupt!
             ppu.vblank();

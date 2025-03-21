@@ -103,6 +103,10 @@ public class RegisterTable {
         };
     }
 
+    /**
+     * Updates the UI value of a register
+     * @param reg
+     */
     public void registerUpdated(Reg reg) {
         if (reg != Reg.SP && reg != Reg.PC) {
             switch (reg) {

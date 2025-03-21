@@ -151,14 +151,6 @@ public class Registers implements Serializable
      * @return the register the nibble corresponds to
      */
     public static Reg getSourceRegByNibble(int nibble) {
-        // FIXME temp name! perhaps inaccurate in some situations!
-        // NOTE: This originally returned a register (enum value), but it was rewritten to return the register
-        // value instead, and moved from the Emu class to the Registers class.
-
-        // the pattern simply repeats for values 0x8 - 0xF, so we can just subtract 0x8 and get the same result.
-        //if (nibble >= 0x8 && nibble <= 0xF) {
-        //    return getSourceRegByNibble(nibble - 0x8);
-        //}
 
         // pattern repeats from 7-F, so we can just modulo the nibble
         return switch (nibble % 8) {
@@ -258,6 +250,10 @@ public class Registers implements Serializable
         setFlag(4, setCarry);
     }
 
+    /**
+     * Restore state from file; replaces the array field
+     * @param stateRegisters
+     */
     public void restoreState(final Registers stateRegisters) {
         this.registers = stateRegisters.registers;
     }

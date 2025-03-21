@@ -16,7 +16,7 @@ import java.util.logging.Level;
 
 /**
  * Handles the game ROM. Will set the MBC (memory bank controller) appropriately, as long as it is a supported MBC (as of writing, only
- * no-MBC, MBC0) and MBC1 are supported).
+ * no-MBC (MBC0) and MBC1 are supported).
  */
 public class ROM implements Serializable {
     // this will be 0x4000 * N
@@ -102,6 +102,10 @@ public class ROM implements Serializable {
         }
     }
 
+    /**
+     * Selects an MBC depending on info in <a href=https://gbdev.io/pandocs/The_Cartridge_Header.html>Cartridge Header - Pan Docs</a>
+     * @throws IllegalArgumentException
+     */
     private void selectMBC() throws IllegalArgumentException {
         switch (rom[0x147].get()) {
             case 0:
@@ -128,6 +132,11 @@ public class ROM implements Serializable {
         }
     }
 
+    /**
+     * Restore game state from file.
+     * @param serializationWrapper
+     * @param mbcListeners
+     */
     public void restoreState(SerializationWrapper serializationWrapper, List<MBCListener> mbcListeners) {
         ROM serializedROM = serializationWrapper.getMemory().getROM();
         this.rom = serializedROM.rom;
