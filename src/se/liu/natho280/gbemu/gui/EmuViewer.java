@@ -8,7 +8,7 @@ import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.GameButton;
 import se.liu.natho280.gbemu.cpu.Memory;
 import se.liu.natho280.gbemu.cpu.Registers;
-import se.liu.natho280.gbemu.debugger.MemoryViewer;
+import se.liu.natho280.gbemu.debugger.DebugViewer;
 import se.liu.natho280.gbemu.ppu.Display;
 
 import javax.swing.*;
@@ -37,15 +37,15 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
     private Display display;
     private final JFrame frame = new JFrame("gbEmu (load a ROM)");
     private final JPopupMenu popupMenu = new JPopupMenu();
-    private final MemoryViewer memoryViewer;
+    private final DebugViewer debugViewer;
     private final DisplayComponent displayComponent;
 
-    public EmuViewer(CPU cpu, Memory memory, Display display, MemoryViewer memoryViewer) {
+    public EmuViewer(CPU cpu, Memory memory, Display display, DebugViewer debugViewer) {
         this.cpu = cpu;
         this.memory = memory;
         this.display = display;
-        this.memoryViewer = memoryViewer;
-        memoryViewer.addDebuggerListener(this);
+        this.debugViewer = debugViewer;
+        debugViewer.addDebuggerListener(this);
         displayComponent = new DisplayComponent(display);
         frame.addComponentListener(this);
         frame.addWindowListener(this);
@@ -78,11 +78,11 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
             synchronized (cpu.lock()) {
                 this.memory.reInitializeMemory(romPath); // reinitialize memory (zero it out), inside it reInit ROM as well?
                 this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
-                this.memoryViewer.redisassemble();
+                this.debugViewer.redisassemble();
             }
 
             frame.setTitle("gbEmu");
-            memoryViewer.clearBreakpoints();
+            debugViewer.clearBreakpoints();
         }
     }
 
@@ -94,10 +94,10 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
         synchronized (cpu.lock()) {
             this.memory.reInitializeMemory(); // reinitialize memory (zero it out), inside it reInit ROM as well?
             this.cpu.reInitializeCPU(); // reinit registers? anything else? run setUpBoot() again
-            this.memoryViewer.redisassemble();
+            this.debugViewer.redisassemble();
         }
-        if (!memoryViewer.getEmulatorPaused()) {
-            memoryViewer.toggleDebugging();
+        if (!debugViewer.getEmulatorPaused()) {
+            debugViewer.toggleDebugging();
             debuggerToggled();
         }
     }
@@ -130,7 +130,7 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
                 }
 
                 frame.setTitle("gbEmu");
-                memoryViewer.forceRedisassemble();
+                debugViewer.forceRedisassemble();
             }
     }
 
@@ -162,11 +162,11 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
     }
 
     public void addBreakpoint() {
-        memoryViewer.addBreakpoint();
+        debugViewer.addBreakpoint();
     }
 
     public void removeBreakpoint() {
-        memoryViewer.removeBreakpointIndex();
+        debugViewer.removeBreakpointIndex();
     }
 
     private void logRegs(Registers regs) {
@@ -260,9 +260,9 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
      * Interface implementation
      */
     public void debuggerToggled() {
-        if (memoryViewer.getEmulatorPaused()) {
+        if (debugViewer.getEmulatorPaused()) {
             frame.setTitle("gbEmu (paused)");
-            memoryViewer.postStepUpdate();
+            debugViewer.postStepUpdate();
         } else {
             frame.setTitle("gbEmu");
         }
@@ -453,10 +453,10 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
     private class ToggleDebuggerVisibilityAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
-            memoryViewer.toggleVisibility();
-            if (memoryViewer.getEmulatorPaused()) {
+            debugViewer.toggleVisibility();
+            if (debugViewer.getEmulatorPaused()) {
                 frame.setTitle("gbEmu (paused)");
-                memoryViewer.postStepUpdate();
+                debugViewer.postStepUpdate();
             } else {
                 frame.setTitle("gbEmu");
             }
@@ -466,7 +466,7 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
     private class ToggleDebuggingAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
-            memoryViewer.toggleDebugging();
+            debugViewer.toggleDebugging();
             debuggerToggled();
         }
     }
@@ -474,8 +474,8 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
     private class StepForwardAction extends AbstractAction {
         @Override
         public void actionPerformed(final ActionEvent e) {
-            if (!memoryViewer.getEmulatorPaused()) new ToggleDebuggingAction().actionPerformed(e);
-            memoryViewer.step();
+            if (!debugViewer.getEmulatorPaused()) new ToggleDebuggingAction().actionPerformed(e);
+            debugViewer.step();
         }
     }
 

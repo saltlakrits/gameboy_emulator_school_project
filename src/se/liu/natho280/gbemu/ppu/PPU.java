@@ -57,7 +57,7 @@ public class PPU {
         this.memory = memory;
     }
 
-    public Pixel getPixel(int color) {
+    private Pixel getPixel(int color) {
         switch (color) {
             case 0x0:
                 return Pixel.WHITE;

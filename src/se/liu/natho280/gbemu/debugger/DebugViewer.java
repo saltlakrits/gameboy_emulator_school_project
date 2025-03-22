@@ -16,7 +16,7 @@ import java.util.logging.Level;
 /**
  * Secondary (to the emulator screen) JFrame, which displays memory, disassembled ROM (and memory), and registers.
  */
-public class MemoryViewer implements MBCListener, RegisterListener {
+public class DebugViewer implements MBCListener, RegisterListener {
 
     private final JFrame frame = new JFrame("Debugger");
     private final MemoryTable memoryTable;
@@ -33,7 +33,7 @@ public class MemoryViewer implements MBCListener, RegisterListener {
 
     private final List<Integer> breakpoints = new ArrayList<>();
 
-    public MemoryViewer(Memory memory, Registers regs) {
+    public DebugViewer(Memory memory, Registers regs) {
         memory.addMBCListener(this);
         regs.addRegisterListener(this);
 
@@ -52,7 +52,7 @@ public class MemoryViewer implements MBCListener, RegisterListener {
      */
     public void addBreakpoint() {
         try {
-            int newBreakpointAddress = Integer.parseInt(JOptionPane.showInputDialog(frame, "Address for new breakpoint:"), 16);
+            int newBreakpointAddress = Integer.parseInt(JOptionPane.showInputDialog(frame, "Address for new breakpoint:", "Add Breakpoint", JOptionPane.PLAIN_MESSAGE), 16);
             breakpoints.add(newBreakpointAddress);
             this.breakpointTable.addBreakpoint(newBreakpointAddress);
         } catch (NumberFormatException ex) {
@@ -66,7 +66,7 @@ public class MemoryViewer implements MBCListener, RegisterListener {
      */
     public void removeBreakpointIndex() {
         try {
-            int index = Integer.valueOf(JOptionPane.showInputDialog(frame, "Index to remove:", getBreakpoints().size())) - 1;
+            int index = Integer.valueOf((String)JOptionPane.showInputDialog(frame, "Index to remove:", "Remove Breakpoint", JOptionPane.PLAIN_MESSAGE, null, null, getBreakpoints().size())) - 1;
             breakpoints.remove(index);
             this.breakpointTable.removeBreakpoint(index);
         } catch (NumberFormatException ex) {

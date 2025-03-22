@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.Memory;
 import se.liu.natho280.gbemu.cpu.Registers;
-import se.liu.natho280.gbemu.debugger.MemoryViewer;
+import se.liu.natho280.gbemu.debugger.DebugViewer;
 import se.liu.natho280.gbemu.gui.EmuViewer;
 import se.liu.natho280.gbemu.ppu.Display;
 import se.liu.natho280.gbemu.ppu.PPU;
@@ -33,12 +33,12 @@ public class Main {
         Memory memory = new Memory();
         Registers registers = new Registers();
 
-        MemoryViewer memoryViewer = new MemoryViewer(memory, registers);
+        DebugViewer debugViewer = new DebugViewer(memory, registers);
 
         CPU cpu = new CPU(memory, registers);
         cpu.setUpBoot();
 
-        EmuViewer emuViewer = new EmuViewer(cpu, memory, display, memoryViewer);
+        EmuViewer emuViewer = new EmuViewer(cpu, memory, display, debugViewer);
         emuViewer.show();
 
         PPU ppu = new PPU(display, memory);
@@ -55,12 +55,12 @@ public class Main {
 
                         ppuCycle(dots, ppu, memory);
 
-                        if (memoryViewer.getEmulatorPaused() && memoryViewer.getShouldStep()) {
+                        if (debugViewer.getEmulatorPaused() && debugViewer.getShouldStep()) {
                             cycles = cpuCycle(cpu);
-                            memoryViewer.postStepUpdate();
-                        } else if (!memoryViewer.getEmulatorPaused()) {
+                            debugViewer.postStepUpdate();
+                        } else if (!debugViewer.getEmulatorPaused()) {
                             cycles = cpuCycle(cpu);
-                            memoryViewer.checkBreakpoints(cpu.getPC());
+                            debugViewer.checkBreakpoints(cpu.getPC());
                         } else {
                             cycles = 0;
                         }
@@ -70,7 +70,7 @@ public class Main {
                     }
                 }
 
-                memoryViewer.updateMemory();
+                debugViewer.updateMemory();
 
                 while (frameTime > System.currentTimeMillis()) {
                     // wait until new frame -- this is what limits the emulator speed and
