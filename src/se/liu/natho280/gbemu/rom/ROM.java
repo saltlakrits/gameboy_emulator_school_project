@@ -31,7 +31,7 @@ public class ROM implements Serializable {
     //    private final UnsignedByte[] boot = new UnsignedByte[256];
     private UnsignedByte[] ram; // RAM size is read from cartridge! address 0x149
 
-    public ROM(String romPath) throws IllegalArgumentException {
+    public ROM(String romPath) throws IllegalStateException {
 
         // set ROM name
         this.romPath = extractROMpath(romPath);
@@ -64,7 +64,7 @@ public class ROM implements Serializable {
             default:
                 this.ram = null; // doesn't matter, exiting
                 CuteLogger.log(Level.SEVERE, "Unrecognized RAM size: " + rom[0x149].get());
-                throw new IllegalArgumentException("Failed to load ROM!\nError: " + "Unrecognized RAM size: " + rom[0x149].get());
+                throw new IllegalStateException("Failed to load ROM!\nError: " + "Unrecognized RAM size: " + rom[0x149].get());
         }
 
         // If no save file found, but there is ram:
@@ -104,9 +104,9 @@ public class ROM implements Serializable {
 
     /**
      * Selects an MBC depending on info in <a href=https://gbdev.io/pandocs/The_Cartridge_Header.html>Cartridge Header - Pan Docs</a>
-     * @throws IllegalArgumentException
+     * @throws IllegalStateException
      */
-    private void selectMBC() throws IllegalArgumentException {
+    private void selectMBC() throws IllegalStateException {
         switch (rom[0x147].get()) {
             case 0:
                 CuteLogger.log(Level.INFO, "Picked MBC0.");
@@ -128,7 +128,7 @@ public class ROM implements Serializable {
                 break;
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown MBC Type: " + rom[0x148].get());
-                throw new IllegalArgumentException("Failed to load ROM!\nError: Unknown MBC Type: " + rom[0x148].get());
+                throw new IllegalStateException("Failed to load ROM!\nError: Unknown MBC Type: " + rom[0x148].get());
         }
     }
 
@@ -203,7 +203,7 @@ public class ROM implements Serializable {
      *
      * @param romPath path to ROM-file as string, should be passed into program as the sole argument
      */
-    private void loadROM(String romPath) throws IllegalArgumentException {
+    private void loadROM(String romPath) throws IllegalStateException {
 
         try (FileInputStream fis = new FileInputStream(romPath)) {
             CuteLogger.log(Level.INFO, "ROM: " + romPath);
@@ -213,14 +213,18 @@ public class ROM implements Serializable {
 
             int index = 0;
             while ((readByte = bis.read()) != -1) {
+                if (index >= 0x180_000) {
+                    CuteLogger.log(Level.SEVERE, "ROM file is too big for the ROM array, i.e. malformed ROM binary");
+                    throw new IndexOutOfBoundsException("ROM file is too big for the ROM array, i.e. malformed ROM binary");
+                }
                 rom[index] = new UnsignedByte(readByte);
                 index++;
             }
 
-        } catch (IOException | ArrayIndexOutOfBoundsException e) {
+        } catch (IOException | IndexOutOfBoundsException e) {
             CuteLogger.log(Level.SEVERE, "ROM load error: " + e.getMessage());
             // ignores the thrown exception in favor of throwing a more generic one to signify a failed ROM load
-            throw new IllegalArgumentException("Failed to load ROM!\nError: " + e.getMessage());
+            throw new IllegalStateException("Failed to load ROM!\nError: " + e.getMessage());
         }
     }
 
@@ -232,7 +236,7 @@ public class ROM implements Serializable {
      *
      * @return the number of banks in the ROM
      */
-    private int romBankNumber(int memoryValue) throws IllegalArgumentException {
+    private int romBankNumber(int memoryValue) throws IllegalStateException {
         if (memoryValue < 0x9) {
             return (1 << (memoryValue + 1));
         }
@@ -247,7 +251,7 @@ public class ROM implements Serializable {
             default:
                 CuteLogger.log(Level.SEVERE, "Unknown ROM bank number: " + Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
 //                System.exit(-1);
-                throw new IllegalArgumentException("Failed to load ROM!\nError: " + "Unknown ROM bank number: " + Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
+                throw new IllegalStateException("Failed to load ROM!\nError: " + "Unknown ROM bank number: " + Integer.toHexString(romBankNumber(memoryValue)).toUpperCase());
         }
     }
 

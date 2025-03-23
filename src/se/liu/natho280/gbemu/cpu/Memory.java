@@ -76,7 +76,7 @@ public class Memory implements Serializable
                 this.rom.addMBCListener(listener);
             }
             CuteLogger.log(Level.INFO, "Successfully loaded ROM.");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException e) {
             this.validROM = false;
             JOptionPane.showMessageDialog(null, e.getMessage() + "\n\nTip: Make sure the file you are trying to load is a Game Boy ROM-file!", "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -131,6 +131,7 @@ public class Memory implements Serializable
 
     public void restoreState(SerializationWrapper serializationWrapper) {
         Memory wrapperMemory = serializationWrapper.getMemory();
+        if (wrapperMemory == null) throw new IllegalStateException("Deserialization failed");
         this.memory = wrapperMemory.memory;
         this.buttonByte = wrapperMemory.buttonByte;
         this.dpadByte = wrapperMemory.dpadByte;

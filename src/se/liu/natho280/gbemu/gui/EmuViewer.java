@@ -81,6 +81,7 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
                 this.debugViewer.redisassemble();
             }
 
+            // TODO Don't set this title if loading of ROM failed
             frame.setTitle("gbEmu");
             debugViewer.clearBreakpoints();
         }
@@ -123,7 +124,7 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
 
                     try {
                         this.memory.restoreState(serializationWrapper);
-                    } catch (NullPointerException e) {
+                    } catch (IllegalStateException e) {
                         return;
                     }
                     this.cpu.restoreState(serializationWrapper);
