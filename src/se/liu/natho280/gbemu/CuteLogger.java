@@ -7,7 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 
 /**
- * Static object for logging. Logs logs for logistical logging purposes.
+ * Static object for logging. Logs logs for logical, logistical logging purposes.
  */
 public class CuteLogger {
     private static final int FILE_LOG_LIMIT = 1024 * 1024;

@@ -92,7 +92,7 @@ public class DebugViewer implements MBCListener, RegisterListener {
      * @param address
      */
     public void checkBreakpoints(int address) {
-        if (breakpoints.contains(address)) {
+        if (!breakpoints.isEmpty() && breakpoints.contains(address)) {
             new ToggleDebuggingAction().actionPerformed(null);
         }
     }
