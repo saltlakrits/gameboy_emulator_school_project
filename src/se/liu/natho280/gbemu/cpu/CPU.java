@@ -4,14 +4,13 @@ import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.Main;
 import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 
-import java.io.Serializable;
 import java.util.logging.Level;
 
 
 /**
  * 'Main' class for use in fetching, decoding and executing instructions from the ROM.
  */
-public class CPU extends Registers implements Serializable {
+public class CPU extends Registers {
     // this is the emulator class, that will have the logic one step above the hardware (kind of)
     // this class is what ultimately utilizes the smaller hardware components to fetch, decode and execute instructions.
     private transient Memory memory; // FIXME We are doing this separately, fix!
@@ -1656,7 +1655,7 @@ public class CPU extends Registers implements Serializable {
     }
 
     /**
-     * There are two built-in timers in the Game Boy, the DIV timer and the TIMA timer. DIV is constantly ticking and
+     * There are two built-in timers in the Game Boy, the DIV- and the TIMA-timer. DIV is constantly ticking and
      * overflowing, whereas TIMA has some settings for the program to control. In short, this method will calculate the
      * increment of the timers based on the cycles the CPU ran.
      * @param cycles
