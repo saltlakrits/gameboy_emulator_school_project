@@ -117,6 +117,7 @@ public class CPU extends Registers {
      * @return a jump vector
      * @see <a href=https://gbdev.io/pandocs/Interrupt_Sources.html>Pan Docs - Interrupt Sources</a>
      */
+    @SuppressWarnings("MapAsCode")
     private int matchInterruptAddress(int bit) {
         // switches based on a bit index, an enum makes this LESS readable
         // makes no sense to make this a Map, as there is only downsides to it, and no gain
