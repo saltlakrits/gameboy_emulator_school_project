@@ -1,11 +1,9 @@
 package se.liu.natho280.gbemu.serialization;
 
-import se.liu.natho280.gbemu.CuteLogger;
 import se.liu.natho280.gbemu.rom.AbstractMBC;
 import se.liu.natho280.gbemu.rom.MBC0;
 import se.liu.natho280.gbemu.rom.MBC1;
 
-import java.util.logging.Level;
 
 /**
  * An MBC will be coerced to a SerializableMBC before serializing a save state, this is to more easily implement loading of save states.
@@ -14,11 +12,11 @@ import java.util.logging.Level;
  */
 public class SerializableMBC {
     private MBCType type;
-    public int[] mbcThings = null;
+    private int[] mbcData;
 
-    public SerializableMBC(MBCType type, int[] mbcThings) {
+    public SerializableMBC(MBCType type, int[] mbcData) {
 	this.type = type;
-	this.mbcThings = mbcThings;
+	this.mbcData = mbcData;
     }
 
     public AbstractMBC getMBC() {
@@ -30,5 +28,9 @@ public class SerializableMBC {
 	}
 
 	throw new IllegalStateException("Invalid MBC type.");
+    }
+
+    public int[] getMbcData() {
+	return mbcData;
     }
 }

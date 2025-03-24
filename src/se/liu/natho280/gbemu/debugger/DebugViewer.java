@@ -132,7 +132,7 @@ public class DebugViewer implements MBCListener, RegisterListener {
         JPanel topRightPanel = new JPanel(new GridLayout(2, 1));
 
         topRightPanel.add(registerTable.getRegisterScrollPane());
-        topRightPanel.add(breakpointTable.getBreakpointScrollPane());
+        topRightPanel.add(breakpointTable.getBreakpointTableScrollPane());
 
         topPanel.add(topRightPanel);
 

@@ -38,12 +38,13 @@ public class MBC1 extends AbstractMBC {
     }
 
     public MBC1(SerializableMBC mbc) {
-        this.numberOfBanks = mbc.mbcThings[0];
-        this.romBank = mbc.mbcThings[1];
-        this.highBank = mbc.mbcThings[2];
-        this.ramEnabled = mbc.mbcThings[3] == 1;
-        this.ramBank = mbc.mbcThings[4];
-        this.advancedBankingMode = mbc.mbcThings[5] == 1;
+        int[] data = mbc.getMbcData();
+        this.numberOfBanks = data[0];
+        this.romBank = data[1];
+        this.highBank = data[2];
+        this.ramEnabled = data[3] == 1;
+        this.ramBank = data[4];
+        this.advancedBankingMode = data[5] == 1;
     }
 
     @Override

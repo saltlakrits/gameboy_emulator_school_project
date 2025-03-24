@@ -19,6 +19,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -28,13 +29,12 @@ import java.util.logging.Level;
 /**
  * The frontend window that displays the emulator screen and receives the input from the user.
  */
-public class EmuViewer implements DebuggerListener, ComponentListener, WindowListener
+public class EmuViewer extends WindowAdapter implements DebuggerListener, ComponentListener
 {
     // Frontend for the emulator
 
-    private CPU cpu;
-    private Memory memory;
-    private Display display;
+    private final CPU cpu;
+    private final Memory memory;
     private final JFrame frame = new JFrame("gbEmu (load a ROM)");
     private final JPopupMenu popupMenu = new JPopupMenu();
     private final DebugViewer debugViewer;
@@ -43,8 +43,7 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
     public EmuViewer(CPU cpu, Memory memory, Display display, DebugViewer debugViewer) {
         this.cpu = cpu;
         this.memory = memory;
-        this.display = display;
-        this.debugViewer = debugViewer;
+	this.debugViewer = debugViewer;
         debugViewer.addDebuggerListener(this);
         displayComponent = new DisplayComponent(display);
         frame.addComponentListener(this);
@@ -125,6 +124,7 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
                     try {
                         this.memory.restoreState(serializationWrapper);
                     } catch (IllegalStateException e) {
+                        CuteLogger.log(Level.SEVERE, "Failed to restore Memory when loading save state: " + e.getMessage());
                         return;
                     }
                     this.cpu.restoreState(serializationWrapper);
@@ -389,21 +389,9 @@ public class EmuViewer implements DebuggerListener, ComponentListener, WindowLis
 
     @Override public void componentHidden(final ComponentEvent e) {}
 
-    @Override public void windowOpened(final WindowEvent e) {}
-
     @Override public void windowClosing(final WindowEvent e) {
         saveRAM();
     }
-
-    @Override public void windowClosed(final WindowEvent e) {}
-
-    @Override public void windowIconified(final WindowEvent e) {}
-
-    @Override public void windowDeiconified(final WindowEvent e) {}
-
-    @Override public void windowActivated(final WindowEvent e) {}
-
-    @Override public void windowDeactivated(final WindowEvent e) {}
 
     private class LoadROMAction extends AbstractAction {
         @Override

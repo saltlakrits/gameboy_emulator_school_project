@@ -23,13 +23,13 @@ public class ROM implements Serializable {
 
     private static final int RAM_BANK_SIZE = 0x2000; // 8 KiB
     private transient AbstractMBC mbc = null; // MBC is read from 0x147
-    private String romPath;
+    private String romPath = null;
     private boolean battery = false;
 
     // ROM size is read from 0x148, but we can just allocate the maximum possible (1.5 MiB)
     private UnsignedByte[] rom = new UnsignedByte[0x180_000];
     //    private final UnsignedByte[] boot = new UnsignedByte[256];
-    private UnsignedByte[] ram; // RAM size is read from cartridge! address 0x149
+    private UnsignedByte[] ram = null; // RAM size is read from cartridge! address 0x149
 
     public ROM(String romPath) throws IllegalStateException {
 
@@ -45,6 +45,8 @@ public class ROM implements Serializable {
 	// pick RAM size
 
         CuteLogger.log(Level.INFO, "Ram size in header: " + rom[0x149].get());
+        // switches based on a number read from the cartridge, enum simply unsuitable
+        //noinspection CaseValueMightBeEnum
         switch (rom[0x149].get()) {
             case 0, 1:
                 this.ram = null;
@@ -92,11 +94,11 @@ public class ROM implements Serializable {
     private String extractROMpath(String romPath) {
         String[] splitPath = romPath.split("\\.");
         if (splitPath.length > 2) {
-            romPath = "";
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < splitPath.length - 1; i++) {
-                romPath += splitPath[i];
+                sb.append(splitPath[i]);
             }
-            return romPath;
+            return sb.toString();
         } else {
             return splitPath[0];
         }
@@ -107,6 +109,8 @@ public class ROM implements Serializable {
      * @throws IllegalStateException
      */
     private void selectMBC() throws IllegalStateException {
+        // switches based on a number read from the cartridge, enum simply unsuitable
+        //noinspection CaseValueMightBeEnum
         switch (rom[0x147].get()) {
             case 0:
                 CuteLogger.log(Level.INFO, "Picked MBC0.");
@@ -214,14 +218,13 @@ public class ROM implements Serializable {
             int index = 0;
             while ((readByte = bis.read()) != -1) {
                 if (index >= 0x180_000) {
-                    CuteLogger.log(Level.SEVERE, "ROM file is too big for the ROM array, i.e. malformed ROM binary");
-                    throw new IndexOutOfBoundsException("ROM file is too big for the ROM array, i.e. malformed ROM binary");
+                    throw new IllegalStateException("ROM file is too big for the ROM array, i.e. malformed ROM binary");
                 }
                 rom[index] = new UnsignedByte(readByte);
                 index++;
             }
 
-        } catch (IOException | IndexOutOfBoundsException e) {
+        } catch (IOException e) {
             CuteLogger.log(Level.SEVERE, "ROM load error: " + e.getMessage());
             // ignores the thrown exception in favor of throwing a more generic one to signify a failed ROM load
             throw new IllegalStateException("Failed to load ROM!\nError: " + e.getMessage());
@@ -241,6 +244,8 @@ public class ROM implements Serializable {
             return (1 << (memoryValue + 1));
         }
 
+        // switches based on numeric value in cartridge, makes little sense to make an enum for this isolated usage
+        //noinspection MapAsCode
         switch (memoryValue) {
             case 0x52:
                 return 72;

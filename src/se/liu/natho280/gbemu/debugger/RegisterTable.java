@@ -34,16 +34,15 @@ public class RegisterTable {
             }
         };
 
-        for (int i = 0; i < 10; i++) {
-            Reg register = matchIndexToRegister(i);
+        for (Reg reg : REGISTERS) {
             String[] newRow = new String[2];
-            newRow[0] = Reg.toString(register);
+            newRow[0] = reg.toString();
 
-            if (register != Reg.SP && register != Reg.PC) {
-                newRow[1] = String.format("$%02X", registers.get(register));
+            if (reg != Reg.SP && reg != Reg.PC) {
+                newRow[1] = String.format("$%02X", registers.get(reg));
             } else {
                 // if SP or PC, we want 4 digits
-                newRow[1] = String.format("$%04X", registers.get(register));
+                newRow[1] = String.format("$%04X", registers.get(reg));
             }
 
             this.registerTableModel.addRow(newRow);
@@ -59,27 +58,6 @@ public class RegisterTable {
 
     public JScrollPane getRegisterScrollPane() {
         return this.registerScrollPane;
-    }
-
-    /**
-     * Small helper function that matches an int to a register.
-     * @param register
-     * @return a register label
-     */
-    private Reg matchIndexToRegister(int register) {
-        return switch (register) {
-            case 0 -> Reg.A;
-            case 1 -> Reg.F;
-            case 2 -> Reg.B;
-            case 3 -> Reg.C;
-            case 4 -> Reg.D;
-            case 5 -> Reg.E;
-            case 6 -> Reg.H;
-            case 7 -> Reg.L;
-            case 8 -> Reg.SP;
-            case 9 -> Reg.PC;
-            default -> throw new IllegalArgumentException("What?");
-        };
     }
 
     /**

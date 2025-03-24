@@ -1,7 +1,8 @@
 package se.liu.natho280.gbemu.cpu;
 
 /**
- * Unsigned 16-bit numbers.
+ * Unsigned 16-bit number, concrete implementation of Unsigned abstract class. In practice, the only difference between our different
+ * Unsigned classes are the clamp() methods.
  * @see Unsigned
  */
 public class UnsignedShort extends Unsigned {

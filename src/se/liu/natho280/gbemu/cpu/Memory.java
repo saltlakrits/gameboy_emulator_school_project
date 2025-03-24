@@ -28,7 +28,7 @@ public class Memory implements Serializable
 {
     // 0x0000 - 0x3FFF is the ROM (bank 00)
     // 0x4000 - 7FFF is the ROM (bank 1-NN)
-    private ROM rom;
+    private ROM rom = null;
 
     // each location in memory is a byte
     // addresses: 0x0000 through 0xFFFF
@@ -175,6 +175,11 @@ public class Memory implements Serializable
         if ((timerControl & 0x4) == 0) return; // if bit 3 is off, TIMA isn't incremented
 
         int mod = 0;
+        // the following switch statement is many, many times slower as a Map than as a simple switch statement, as such it is left
+        // as a switch
+        // it makes little sense to make an enum for this as well, since it is switching based on a memory value
+        //noinspection MapAsCode
+        //noinspection CaseValueMightBeEnum
         switch (timerControl & 0x3) {
             case 0:
                 mod = 256;

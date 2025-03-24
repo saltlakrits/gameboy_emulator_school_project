@@ -99,6 +99,8 @@ public class DisassemblyTable {
      * @param programCounter
      * @return updated programCounter after disassembling an instruction
      */
+    @SuppressWarnings({"NonCommentSourceStatements", "MagicNumberGeneric"})
+    // making this shorter, or making all the bit values constants only makes it less readable
     private int disassembleInstruction(int programCounter, String[] newRow) {
 
         int firstNibble = (memory.unconditionalRead(programCounter) & 0xF0) >> 4;
@@ -618,6 +620,8 @@ public class DisassemblyTable {
     }
 
     private String r16matchFirstNibble(int firstNibble) {
+        // switches based on bits in instruction, enum unsuitable
+        //noinspection CaseValueMightBeEnum
         return switch (firstNibble % 0xC) {
             case 0 -> "BC";
             case 1 -> "DE";
@@ -628,6 +632,8 @@ public class DisassemblyTable {
     }
     
     private String r16ptrMatchFirstNibble(int firstNibble) {
+        // switches based on bits in instruction, enum unsuitable
+        //noinspection CaseValueMightBeEnum
         return switch (firstNibble) {
             case 0 -> "(BC)";
             case 1 -> "(DE)";
@@ -638,6 +644,8 @@ public class DisassemblyTable {
     }
 
     private String r8matchFirstNibble(int firstNibble) {
+        // switches based on bits in instruction, enum unsuitable
+        //noinspection CaseValueMightBeEnum
         return switch (firstNibble) {
             case 0 -> "B";
             case 1 -> "D";
@@ -648,6 +656,8 @@ public class DisassemblyTable {
     }
 
     private String otherR8matchFirstNibble(int firstNibble) {
+        // switches based on bits in instruction, enum unsuitable
+        //noinspection CaseValueMightBeEnum
         return switch (firstNibble) {
             case 0 -> "C";
             case 1 -> "E";
@@ -662,6 +672,8 @@ public class DisassemblyTable {
      * @param programCounter (0xCB + 1)
      * @return stringified instruction at given programCounter (0xCB + 1)
      */
+    @SuppressWarnings({"NonCommentSourceStatements", "MagicNumberGeneric"})
+    // making this shorter, or making all the bit values constants only makes it less readable
     private String disassembleBigInstruction(int programCounter) {
         int firstNibble = (memory.unconditionalRead(programCounter) & 0xF0) >> 4;
         int secondNibble = memory.unconditionalRead(programCounter) & 0x0F;

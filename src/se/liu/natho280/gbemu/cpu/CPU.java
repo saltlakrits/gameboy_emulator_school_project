@@ -118,6 +118,10 @@ public class CPU extends Registers {
      * @see <a href=https://gbdev.io/pandocs/Interrupt_Sources.html>Pan Docs - Interrupt Sources</a>
      */
     private int matchInterruptAddress(int bit) {
+        // switches based on a bit index, an enum makes this LESS readable
+        // makes no sense to make this a Map, as there is only downsides to it, and no gain
+        //noinspection CaseValueMightBeEnum
+        //noinspection MapAsCode
         switch (bit) {
             case 0:
                 return 0x40;
@@ -232,6 +236,8 @@ public class CPU extends Registers {
      * another method, ({@link #bigInstruction}).</p>
      * @return cycles it took to finish an instruction
      */
+    @SuppressWarnings({"NonCommentSourceStatements", "MagicNumberGeneric"})
+    // making this shorter, or making all the bit values constants only makes it less readable
     public int runCycle() {
         if (haltBugCounter == 1) {
             regs.addPC(-1);
@@ -317,8 +323,8 @@ public class CPU extends Registers {
                         regs.setZeroFlag(false);
                         regs.setSubtractionFlag(false);
                         regs.setHalfcarryFlag(false);
-                        regs.setCarryFlag((regs.get(Reg.A) & 0x80) >> 7 == 1);
-                        regs.set(Reg.A, regs.get(Reg.A) << 1 | ((regs.get(Reg.A) & 0x80) >> 7));
+                        regs.setCarryFlag((regs.get(Reg.A) & (1 << 7)) >> 7 == 1);
+                        regs.set(Reg.A, regs.get(Reg.A) << 1 | ((regs.get(Reg.A) & (1 << 7)) >> 7));
                         break;
                     case 0x8:
                         // cycles: 3, LD (a16), SP
@@ -412,7 +418,7 @@ public class CPU extends Registers {
                         regs.setZeroFlag(false);
                         regs.setSubtractionFlag(false);
                         regs.setHalfcarryFlag(false);
-                        regs.setCarryFlag((regs.get(Reg.A) & 0x80) >> 7 == 1);
+                        regs.setCarryFlag((regs.get(Reg.A) & (1 << 7)) >> 7 == 1);
                         regs.set(Reg.A, regs.get(Reg.A) << 1 | carryFlag);
                         break;
                     case 0x8:
@@ -1405,6 +1411,8 @@ public class CPU extends Registers {
      * @param d8 immediate 8-bit instruction
      * @see <a href=https://www.google.com/>Meganesu CPU Instructions (scroll down)</a>
      */
+    @SuppressWarnings({"NonCommentSourceStatements", "MagicNumberGeneric"})
+    // making this shorter, or making all the bit values constants only makes it less readable
     private void bigInstruction(int d8) {
         int firstNibble = (d8 & 0xF0) >> 4;
         int secondNibble = (d8 & 0x0F);
@@ -1430,23 +1438,27 @@ public class CPU extends Registers {
 
                 if (secondNibble <= 0x7 && secondNibble != 0x6) {
                     // cycles: 2, RLC r8
-                    regs.setCarryFlag((sourceRegValue & 0x80) == 0x80);
-                    regs.set(sourceReg, (sourceRegValue << 1) | ((sourceRegValue & 0x80) >> 7));
+                    regs.setCarryFlag((sourceRegValue & (1 << 7)) == (1 << 7));
+                    // note that the eighth bit rotates around to the first index, and the other bits shift one place to the left
+                    regs.set(sourceReg, (sourceRegValue << 1) | ((sourceRegValue & (1 << 7)) >> 7));
                     regs.setZeroFlag(regs.get(sourceReg) == 0x0);
                 } else if (secondNibble == 0x6) {
                     // cycles: 4, RLC (HL)
-                    regs.setCarryFlag((sourceRegValue & 0x80) == 0x80);
-                    memory.write(regs.get(Reg.HL), (sourceRegValue << 1) | ((sourceRegValue & 0x80) >> 7));
+                    regs.setCarryFlag((sourceRegValue & (1 << 7)) == (1 << 7));
+                    // note that the eighth bit rotates around to the first index, and the other bits shift one place to the left
+                    memory.write(regs.get(Reg.HL), (sourceRegValue << 1) | ((sourceRegValue & (1 << 7)) >> 7));
                     regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
                     cycles += 2;
                 } else if (secondNibble != 0xE) {
                     // cycles: 2, RRC r8
                     regs.setCarryFlag((sourceRegValue & 0x1) == 0x1);
+                    // not that the first bit rotates around to the eighth index, and the other bits shift one place to the right
                     regs.set(sourceReg, (sourceRegValue >> 1) | ((sourceRegValue & 0x1) << 7));
                     regs.setZeroFlag(regs.get(sourceReg) == 0x0);
                 } else {
                     // cycles: 4, RRC (HL)
                     regs.setCarryFlag((sourceRegValue & 0x1) == 0x1);
+                    // not that the first bit rotates around to the eighth index, and the other bits shift one place to the right
                     memory.write(regs.get(Reg.HL), (sourceRegValue >> 1) | ((sourceRegValue & 0x1) << 7));
                     regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
                     cycles += 2;
@@ -1487,21 +1499,21 @@ public class CPU extends Registers {
                 if (secondNibble <= 0x7 && secondNibble != 0x6) {
                     // cycles: 2, SLA r8
                     regs.set(sourceReg, sourceRegValue << 1);
-                    regs.setCarryFlag((sourceRegValue & 0x80) == 0x80);
+                    regs.setCarryFlag((sourceRegValue & (1 << 7)) == (1 << 7));
                     regs.setZeroFlag(regs.get(sourceReg) == 0x0);
                 } else if (secondNibble == 0x6) {
                     // cycles: 4, SLA (HL)
                     memory.write(regs.get(sourceReg), (sourceRegValue << 1));
-                    regs.setCarryFlag((sourceRegValue & 0x80) == 0x80);
+                    regs.setCarryFlag((sourceRegValue & (1 << 7)) == (1 << 7));
                     regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
                 } else if (secondNibble != 0xE) {
                     // cycles: 2, SLA r8
-                    regs.set(sourceReg, sourceRegValue >> 1 | (sourceRegValue & 0x80));
+                    regs.set(sourceReg, sourceRegValue >> 1 | (sourceRegValue & (1 << 7)));
                     regs.setCarryFlag((sourceRegValue & 0x1) == 0x1);
                     regs.setZeroFlag(regs.get(sourceReg) == 0x0);
                 } else {
                     // cycles: 4, SLA (HL)
-                    memory.write(regs.get(sourceReg), sourceRegValue >> 1 | (sourceRegValue & 0x80));
+                    memory.write(regs.get(sourceReg), sourceRegValue >> 1 | (sourceRegValue & (1 << 7)));
                     regs.setCarryFlag((sourceRegValue & 0x1) == 0x1);
                     regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
                 }
@@ -1638,9 +1650,9 @@ public class CPU extends Registers {
                 } else if (secondNibble == 0x6) {
                     memory.write(regs.get(sourceReg), (sourceRegValue | 0x40)); // 0100 0000
                 } else if (secondNibble != 0xE) {
-                    regs.set(sourceReg, sourceRegValue | 0x80); // 1000 0000
+                    regs.set(sourceReg, sourceRegValue | (1 << 7)); // 1000 0000
                 } else {
-                    memory.write(regs.get(sourceReg), (sourceRegValue | 0x80)); // 1000 0000
+                    memory.write(regs.get(sourceReg), (sourceRegValue | (1 << 7))); // 1000 0000
                 }
                 if (sourceReg == Reg.HL) cycles++;
                 break;

@@ -4,8 +4,14 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
+/**
+ * Table for breakpoint list in UI. Functionally very similar to the other UI tables.
+ * @see DisassemblyTable
+ * @see MemoryTable
+ * @see RegisterTable
+ */
 public class BreakpointTable {
-    private DefaultTableModel breakpointTableModel = null;
+    private DefaultTableModel breakpointTableModel;
     private JScrollPane breakpointTableScrollPane = null;
 
     public BreakpointTable() {
@@ -36,7 +42,7 @@ public class BreakpointTable {
      * Retrieves the JScrollPane for displaying in the UI
      * @return
      */
-    public JScrollPane getBreakpointScrollPane() {
+    public JScrollPane getBreakpointTableScrollPane() {
 	return this.breakpointTableScrollPane;
     }
 
