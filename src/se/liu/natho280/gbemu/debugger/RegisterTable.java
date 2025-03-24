@@ -16,6 +16,8 @@ public class RegisterTable {
     private DefaultTableModel registerTableModel;
     private JScrollPane registerScrollPane;
 
+    private static final int FONT_SIZE = 12;
+
     private static final Reg[] REGISTERS = {Reg.A, Reg.F, Reg.B, Reg.C, Reg.D, Reg.E, Reg.H, Reg.L, Reg.SP, Reg.PC};
 
     public RegisterTable(Registers registers) {
@@ -52,7 +54,7 @@ public class RegisterTable {
         // remove default keybinding, our table isn't editable anyway!
         registerTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F2"), "none");
 
-        registerTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        registerTable.setFont(new Font("Monospaced", Font.PLAIN, FONT_SIZE));
         this.registerScrollPane = new JScrollPane(registerTable);
     }
 

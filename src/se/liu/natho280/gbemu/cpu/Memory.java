@@ -33,10 +33,27 @@ public class Memory implements Serializable
     // each location in memory is a byte
     // addresses: 0x0000 through 0xFFFF
     // ROM addresses removed from memory
-    private UnsignedByte[] memory = new UnsignedByte[0x10000 - 0x8000];
-    private int buttonByte = 0xFF;
-    private int dpadByte = 0xFF;
-    private int dmaTransferLock = 0;
+    private static final int ADDRESSES_IN_MEMORY = 0x10_000;
+    private static final int ADDRESSES_IN_ROM = 0x8_000;
+
+    private static final int RAM_START_ADDRESS = 0xA000;
+    private static final int RAM_END_ADDRESS = 0xBFFF;
+
+    private static final int ROM_START_ADDRESS = 0x0000;
+    private static final int ROM_END_ADDRESS = 0x7FFF;
+
+    private static final int VRAM_START_ADDRESS = 0x8000;
+    private static final int VRAM_END_ADDRESS = 0x9FFF;
+
+    private UnsignedByte[] memory = new UnsignedByte[ADDRESSES_IN_MEMORY - ADDRESSES_IN_ROM];
+    private static final int BYTE_OVERFLOW_MODULO = 256;
+    private static final int BYTE_MAX = 0xFF;
+    private int buttonByte = 0xFF; // default value -> no inputs -> all bits are set
+    private int dpadByte = 0xFF; // default value -> no inputs -> all bits are set
+
+    // lock all read/write for 640 dots upon initiating a DMA transfer
+    private static final int DMA_LOCK_DOTS = 640;
+    private int dmaTransferLock = 0; // See Pan Docs - DMA Transfer
     private boolean vramLocked = false;
 
     private double divTimer = 0.0;
@@ -89,7 +106,7 @@ public class Memory implements Serializable
      */
     public void reInitializeMemory(String newROM) {
         for (int i = 0; i < memory.length; i++) {
-            unconditionalWrite(i + 0x8000, 0);
+            unconditionalWrite(i + ADDRESSES_IN_ROM, 0);
         }
 
         resetDivTimer();
@@ -111,20 +128,6 @@ public class Memory implements Serializable
             }
         }
     }
-
-//    private List<MBCListener> reInitialize() {
-//        // zero out the memory
-//        for (int i = 0; i < memory.length; i++) {
-//            unconditionalWrite(i + 0x8000, 0);
-//        }
-//
-//        resetDivTimer();
-//        tima = 0;
-//        timaCycles = 0;
-//
-//        // drop ROM, reinit
-//        return rom.getMBCListeners();
-//    }
 
     public boolean hasValidROM() {
         return validROM;
@@ -165,15 +168,16 @@ public class Memory implements Serializable
     }
 
     public void incDivTimer(double value) {
-        divTimer = (divTimer + value) % 256;
-        flooredDivTimer = ((int)divTimer) & 0xFF;
+        divTimer = (divTimer + value) % BYTE_OVERFLOW_MODULO;
+        flooredDivTimer = ((int)divTimer) % BYTE_OVERFLOW_MODULO;
 
         memory[0xFF04 - 0x8000].set(flooredDivTimer);
     }
 
     public void incTimaCycles(int cycles) {
         int timerControl = unconditionalRead(0xFF07); // TAC register
-        if ((timerControl & 0x4) == 0) return; // if bit 3 is off, TIMA isn't incremented
+        if ((timerControl & (1 << 2)) == 0) return; // if bit 3 is off, TIMA isn't incremented
+        final int firstTwoBits = 3;
 
         int mod = 0;
         // the following switch statement is many, many times slower as a Map than as a simple switch statement, as such it is left
@@ -181,7 +185,9 @@ public class Memory implements Serializable
         // it makes little sense to make an enum for this as well, since it is switching based on a memory value
         //noinspection MapAsCode
         //noinspection CaseValueMightBeEnum
-        switch (timerControl & 0x3) {
+        // the first 2 bits of the timer control register determines how often TIMA increments. There is no suitable way to avoid
+        // these "magic numbers".
+        switch (timerControl & firstTwoBits) {
             case 0:
                 mod = 256;
                 break;
@@ -203,7 +209,7 @@ public class Memory implements Serializable
             // reset timaCycles
             timaCycles -= mod;
         }
-        if (tima > 0xFF) {
+        if (tima > BYTE_MAX) {
             // if tima should overflow, we overflow it and set it to TMA (Timer Modulo)
 //            tima = memory[0xFF06].get();
             tima = unconditionalRead(0xFF06); //  TMA read
@@ -215,7 +221,7 @@ public class Memory implements Serializable
         }
 //        memory[0xFF05].set(tima);
 //        unconditionalWrite(0xFF05, tima);
-        memory[0xFF05 - 0x8000].set(tima);
+        memory[0xFF05 - ADDRESSES_IN_ROM].set(tima);
     }
 
     public void subDmaTransferLock(int dots) {
@@ -232,11 +238,11 @@ public class Memory implements Serializable
     }
 
     public void write(int address, int value) {
-        int subtractedAddress = address - 0x8000;
+        int subtractedAddress = address - ADDRESSES_IN_ROM;
 
-        if (address <= 0x7FFF) {
+        if (address <= ROM_END_ADDRESS) {
             rom.write(address, value);
-        } else if (address >= 0xA000 && address <= 0xBFFF) {
+        } else if (address >= RAM_START_ADDRESS && address <= RAM_END_ADDRESS) {
             rom.write(address, value); // writing to RAM a separate method?
         } else if (address == 0xFF04) {
             resetDivTimer();
@@ -250,12 +256,12 @@ public class Memory implements Serializable
                 // which is 0xFE00-0xFE9F
 //                memory[0xFE00 + i] = memory[(value * 0x100) | i];
 //                unconditionalWrite(0xFE00 + i, unconditionalRead(value * 0x100 + i));
-                int newVal = memory[(value * 0x100 + i - 0x8000)].get();
-                memory[0xFE00 - 0x8000 + i].set(newVal);
+                int newVal = memory[(value * 0x100 + i - ADDRESSES_IN_ROM)].get();
+                memory[0xFE00 - ADDRESSES_IN_ROM + i].set(newVal);
             }
             // lock all read/write for 640 dots
-            dmaTransferLock = 640;
-        } else if (address <= 0x9FFF) {
+            dmaTransferLock = DMA_LOCK_DOTS;
+        } else if (address <= VRAM_END_ADDRESS) {
 //            if (!vramLocked) memory[address] = new UnsignedByte(value); // FIXME
 //            if (!vramLocked) unconditionalWrite(address, value);
             if (!vramLocked) memory[subtractedAddress].set(value);
@@ -272,17 +278,16 @@ public class Memory implements Serializable
     }
 
     public int read(int address) {
-        if (address >= 0x0 && address <= 0x7FFF) {
+        if (address >= 0x0 && address <= ROM_END_ADDRESS) {
             return rom.get(address);
         }
-        if (address >= 0xA000 && address <= 0xBFFF) {
+        if (address >= RAM_START_ADDRESS && address <= RAM_END_ADDRESS) {
             // reading from RAM must be redirected through MBC
             return rom.get(address);
         }
         if (address == 0xFF00) {
             // input register!
             // depending on bit 4 and bit 5, we should return different input registers
-//            int input = (memory[0xFF00].get() & 0x30) >> 4; // FIXME
             int input = (unconditionalRead(0xFF00) & 0x30) >> 4;
             if ((input & 0x1) == 0) {
                 return dpadByte & 0xF;
@@ -292,15 +297,14 @@ public class Memory implements Serializable
                 return 0xF;
             }
         }
-        if (address >= 0x8000 && address <= 0x9FFF) {
+        if (address >= VRAM_START_ADDRESS && address <= VRAM_END_ADDRESS) {
 //            if (!vramLocked) return memory[address].get();
 //            else return 0xFF;
             if (!vramLocked) return unconditionalRead(address);
-            else return 0xFF;
+            else return 0xFF; // default return value if VRAM is locked, which isn't implemented yet
         }
         // maybe need to add other regions as well
-//        return memory[address].get(); // FIXME
-        return unconditionalRead(address);
+        return unconditionalRead(address); // never gets here
     }
 
     /**
@@ -310,11 +314,11 @@ public class Memory implements Serializable
      * @return
      */
     public int unconditionalRead(int address) {
-        if (address >= 0x0 && address <= 0x7FFF) {
+        if (address >= 0x0 && address <= ROM_END_ADDRESS) {
             if (this.rom == null) return 0;
             return rom.get(address);
         }
-        return memory[address - 0x8000].get();
+        return memory[address - ADDRESSES_IN_ROM].get();
     }
 
     /**
@@ -324,14 +328,12 @@ public class Memory implements Serializable
      * @param value
      */
     public void unconditionalWrite(int address, int value) {
-        if (address >= 0x0 && address <= 0x7FFF) {
+        if (address >= ROM_START_ADDRESS && address <= ROM_END_ADDRESS) {
             rom.write(address, value);
-            // FIXME no listener call -- is that fine?
             return;
         }
 
-//        memory[address - 0x8000] = new UnsignedByte(value);
-        memory[address - 0x8000].set(value);
+        memory[address - ADDRESSES_IN_ROM].set(value);
 
         for (MemoryListener memoryListener : memoryListeners) {
             memoryListener.memoryChanged(address);
@@ -341,13 +343,9 @@ public class Memory implements Serializable
     public OAM[] getOAMs() {
         OAM[] oams = new OAM[40];
         for (int i = 0; i < (oams.length * 4); i += 4) {
-//            int y = memory[0xFE00 + i].get(); // FIXME
             int y = unconditionalRead(0xFE00 + i);
-//            int x = memory[0xFE00 + (i + 1)].get(); // FIXME
             int x = unconditionalRead(0xFE00 + (i + 1));
-//            int index = memory[0xFE00 + (i + 2)].get(); // FIXME
             int index = unconditionalRead(0xFE00 + (i + 2));
-//            int flags = memory[0xFE00 + (i + 3)].get(); // FIXME
             int flags = unconditionalRead(0xFE00 + (i + 3));
             OAM newOAM = new OAM(y, x, index, flags);
             oams[i / 4] = newOAM;
@@ -401,24 +399,22 @@ public class Memory implements Serializable
      * @see <a href=https://gbdev.io/pandocs/Interrupt_Sources.html#int-60--joypad-interrupt>Pan Docs - Joypad Interrupt</a>
      */
     private void setInputInterrupt(boolean dpad, boolean setToHigh) {
-//        int interruptFlags = memory[0xFFFF].get(); // FIXME
         int interruptFlags = unconditionalRead(0xFFFF);
         boolean inputInterruptsEnabled = (interruptFlags & (1 << 4)) != 0;
-//        int newInterruptByte = memory[0xFF0F].get(); // FIXME
         int newInterruptByte = unconditionalRead(0xFF0F);
 
         if (!inputInterruptsEnabled) {
             // unset the interrupt if they aren't enabled, and do an early return
             newInterruptByte &= interruptFlags;
-//            memory[0xFF0F].set(newInterruptByte); // FIXME
             unconditionalWrite(0xFF0F, newInterruptByte);
             return;
         }
         // if dpad -> bit 4, else action buttons -> bit 5
         int bit = (dpad ? 4 : 5);
-        // mask out the old interrupt bit
+        // mask out the old interrupt bit by AND'ing with inverse bits of 0x10
         newInterruptByte &= ((1 << 4) ^ 0xFF);
 
+        // if button is pressed, raise interrupt, if released, remove interrupt signal
         if ((unconditionalRead(0xFF00) & (1 << bit)) == 0) {
             unconditionalWrite(0xFF0F, newInterruptByte | ((setToHigh ? 1 : 0) << 4));
         }

@@ -15,9 +15,12 @@ import java.awt.image.BufferedImage;
 public class DisplayComponent extends JComponent implements DisplayListener {
     private int scalingFactor = 4;
     private Display display;
-    private final Dimension preferredSize = new Dimension(160 * scalingFactor, 144 * scalingFactor);
 
-    private final BufferedImage image = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
+    private static final int GB_LCD_WIDTH = 160;
+    private static final int GB_LCD_HEIGHT = 144;
+    private final Dimension preferredSize = new Dimension(GB_LCD_WIDTH * scalingFactor, GB_LCD_HEIGHT * scalingFactor);
+
+    private final BufferedImage image = new BufferedImage(GB_LCD_WIDTH, GB_LCD_HEIGHT, BufferedImage.TYPE_INT_RGB);
 
     public DisplayComponent(Display display) {
         this.display = display;
@@ -34,12 +37,7 @@ public class DisplayComponent extends JComponent implements DisplayListener {
 
         for (int y = 0; y < display.getHeight(); y++) {
             for (int x = 0; x < display.getWidth(); x++) {
-                switch (displayCopy[y][x]) {
-                    case Pixel.WHITE -> image.setRGB(x, y, 0xe6e6e6);
-                    case Pixel.LIGHT -> image.setRGB(x, y, 0xcccccc);
-                    case Pixel.MEDIUM -> image.setRGB(x, y, 0xa6a6a6);
-                    case Pixel.BLACK -> image.setRGB(x, y, 0x666666);
-                }
+                image.setRGB(x, y, Pixel.pixelToRGB(displayCopy[y][x]));
             }
         }
 
@@ -72,6 +70,6 @@ public class DisplayComponent extends JComponent implements DisplayListener {
      */
     public void setScalingFactor(int scalingFactor) {
         this.scalingFactor = scalingFactor;
-        this.preferredSize.setSize(160 * scalingFactor, 144 * scalingFactor);
+        this.preferredSize.setSize(GB_LCD_WIDTH * scalingFactor, GB_LCD_HEIGHT * scalingFactor);
     }
 }

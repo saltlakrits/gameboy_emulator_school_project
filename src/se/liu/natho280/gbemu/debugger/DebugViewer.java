@@ -16,6 +16,7 @@ import java.util.logging.Level;
 /**
  * Secondary (to the emulator screen) JFrame, which displays memory, disassembled ROM (and memory), and registers.
  */
+@SuppressWarnings("CloneableClassWithoutClone") // to avoid implementing clone for all AbstractActions
 public class DebugViewer implements MBCListener, RegisterListener {
 
     private final JFrame frame = new JFrame("Debugger");

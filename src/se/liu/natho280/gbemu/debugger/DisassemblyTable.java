@@ -122,6 +122,8 @@ public class DisassemblyTable {
         Reg sourceReg = Registers.getSourceRegByNibble(secondNibble);
         String sourceRegString = Reg.toString(sourceReg);
 
+        // long switch statement, but breaking it apart would make it LESS readable. look at a diagram of the opcodes for
+        // a complete overview
         switch (firstNibble) {
             case 0x0:
                 switch (secondNibble) {

@@ -19,17 +19,18 @@ import java.util.logging.Level;
  * no-MBC (MBC0) and MBC1 are supported).
  */
 public class ROM implements Serializable {
-    // this will be 0x4000 * N
 
     private static final int RAM_BANK_SIZE = 0x2000; // 8 KiB
+    private static final int RAM_START_ADDRESS = 0xA000;
+    private static final int RAM_END_ADDRESS = 0xBFFF;
     private transient AbstractMBC mbc = null; // MBC is read from 0x147
     private String romPath = null;
     private boolean battery = false;
 
+    private static final int MAXIMUM_ROM_SIZE = 0x180_000;
     // ROM size is read from 0x148, but we can just allocate the maximum possible (1.5 MiB)
-    private UnsignedByte[] rom = new UnsignedByte[0x180_000];
-    //    private final UnsignedByte[] boot = new UnsignedByte[256];
-    private UnsignedByte[] ram = null; // RAM size is read from cartridge! address 0x149
+    private UnsignedByte[] rom = new UnsignedByte[MAXIMUM_ROM_SIZE];
+    private UnsignedByte[] ram = null; // RAM size is read from cartridge, at address 0x149
 
     public ROM(String romPath) throws IllegalStateException {
 
@@ -180,7 +181,7 @@ public class ROM implements Serializable {
      * @see AbstractMBC
      */
     public int get(int address) {
-        if (address >= 0xA000 && address <= 0xBFFF) {
+        if (address >= RAM_START_ADDRESS && address <= RAM_END_ADDRESS) {
             if (!mbc.getRamEnabled()) return 0xFF;
             return ram[mbc.redirectedAddress(address)].get();
         }
@@ -196,7 +197,7 @@ public class ROM implements Serializable {
      * @see MBC
      */
     public void write(int address, int value) {
-        if (address >= 0xA000 && address <= 0xBFFF && ram != null) {
+        if (address >= RAM_START_ADDRESS && address <= RAM_END_ADDRESS && ram != null) {
             ram[mbc.redirectedAddress(address)].set(value);
         }
         mbc.write(address, value);
@@ -217,7 +218,7 @@ public class ROM implements Serializable {
 
             int index = 0;
             while ((readByte = bis.read()) != -1) {
-                if (index >= 0x180_000) {
+                if (index >= MAXIMUM_ROM_SIZE) {
                     throw new IllegalStateException("ROM file is too big for the ROM array, i.e. malformed ROM binary");
                 }
                 rom[index] = new UnsignedByte(readByte);

@@ -11,6 +11,8 @@ public class OAM {
     private final int index; // tile index
     private final int flags;
 
+    private static final int VRAM_START_ADDRESS = 0x8000;
+
     public OAM(int y, int x, int index, int flags) {
         this.y = y;
         this.x = x;
@@ -19,7 +21,7 @@ public class OAM {
     }
 
     public int getTileAddress() {
-        return 0x8000 + (0x10 * index);
+        return VRAM_START_ADDRESS + (0x10 * index);
     }
 
     public int getY() {

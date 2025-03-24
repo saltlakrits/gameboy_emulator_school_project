@@ -14,14 +14,19 @@ import se.liu.natho280.gbemu.ppu.PPU;
  * {@link PPU} (Picture Processing Unit, graphics) cycles.
  */
 public class Main {
-    private static final double DOTS_PER_SECOND = 4.1943 * 1_000_000;
-    // 59.73 frames per second
+    private static final double DOTS_PER_SECOND = 4_194_300; // calculated by hand
+    /** 59.73 frames per second for the LCD screen on the Game Boy */
     private static final double FRAMES_PER_SECOND = 59.73;
     // about 70220.99... so add 1.
     private static final int DOTS_PER_FRAME = (int)(DOTS_PER_SECOND / FRAMES_PER_SECOND) + 1;
+    private static final int MS_PER_FRAME = 16; // roughly! actually 16.74
+    private static final int DOTS_PER_CYCLE = 4;
 
-
-//    private static final long MILLIS_PER_FRAME = (long)((1.0 / 59.73) * 1000);
+    private static final int DOTS_PER_SCANLINE = 456;
+    private static final int LAST_SCANLINE = 143;
+    private static final int DOTS_IN_OAM_MODE = 80;
+    private static final int DOTS_IN_MODE_3 = 172;
+    private static final int DOTS_IN_MODE_2 = 204;
 
     public static void main(String[] args) {
 
@@ -46,7 +51,7 @@ public class Main {
         while (true) {
             if (memory.hasValidROM()) {
                 int dots = 0;
-                long frameTime = System.currentTimeMillis() + 16;
+                long frameTime = System.currentTimeMillis() + MS_PER_FRAME;
 
                 // run all the dots (T-cycles) for a single frame
                 while (dots < DOTS_PER_FRAME && memory.hasValidROM()) {
@@ -65,8 +70,8 @@ public class Main {
                             cycles = 0;
                         }
 
-                        memory.subDmaTransferLock(cycles * 4);
-                        dots += cycles * 4;
+                        memory.subDmaTransferLock(cycles * DOTS_PER_CYCLE);
+                        dots += cycles * DOTS_PER_CYCLE;
                     }
                 }
 
@@ -105,10 +110,11 @@ public class Main {
      * <p>The VRAM should be locked in different spots, but implementing this behavior REQUIRES very careful timing
      * that we do not currently have.</p>
      * @param dots the current dot (T-cycle) count of the frame
+     * @see <a href=https://gbdev.io/pandocs/Rendering.html>Pan Docs - Rendering</a>
      */
     public static void ppuCycle(int dots, PPU ppu, Memory memory) {
-        int ly = dots / 456; // LY, y coordinate
-        int modDots = dots % 456; // 456 dots per scanline
+        final int ly = dots / DOTS_PER_SCANLINE; // LY, y coordinate
+        final int modDots = dots % DOTS_PER_SCANLINE; // 456 dots per scanline
 
         if (ly != memory.unconditionalRead(0xFF44)) {
             // if LY changed, we want to reset the flags so the different parts of the scanline is drawn again
@@ -119,19 +125,19 @@ public class Main {
 
         // the FIRST time we get to vblank, ppu.flags will be non-nil, so we use that to detect reaching vblank
         // we should set vblank interrupt and STAT
-        if (ly == 143 && ppu.checkFlags() && !ppu.getFlag(3)) {
+        if (ly == LAST_SCANLINE && ppu.checkFlags() && !ppu.getFlag(3)) {
             // vblank interrupt!
             ppu.vblank();
-        } else if (ly > 143) {
+        } else if (ly > LAST_SCANLINE) {
             return; // vblank
         }
-        if (modDots < 80 && !ppu.getFlag(0)) {
+        if (modDots < DOTS_IN_OAM_MODE && !ppu.getFlag(0)) {
             // Potentially: LOCK OAM BESIDE DMA TRANSFER
             // scanning oam
             ppu.oamScan(ly);
             return;
         }
-        if (modDots < 252 && !ppu.getFlag(1)) {
+        if (modDots < (DOTS_IN_OAM_MODE + DOTS_IN_MODE_3) && !ppu.getFlag(1)) {
             // Potentially: UNLOCK OAM
             // mode 3, drawing scanline
             // LOCK VRAM
@@ -139,7 +145,7 @@ public class Main {
             ppu.mode3(ly);
             return;
         }
-        if (modDots < 455 && !ppu.getFlag(2)) {
+        if (modDots < (DOTS_IN_OAM_MODE + DOTS_IN_MODE_3 + DOTS_IN_MODE_2 - 1) && !ppu.getFlag(2)) {
             // mode 0, hblank
 
             // UNLOCK VRAM

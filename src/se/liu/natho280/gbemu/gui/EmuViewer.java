@@ -21,7 +21,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.HexFormat;
 import java.util.logging.Level;
@@ -29,6 +28,7 @@ import java.util.logging.Level;
 /**
  * The frontend window that displays the emulator screen and receives the input from the user.
  */
+@SuppressWarnings("CloneableClassWithoutClone") // to avoid implementing clone for all AbstractActions
 public class EmuViewer extends WindowAdapter implements DebuggerListener, ComponentListener
 {
     // Frontend for the emulator
@@ -39,6 +39,14 @@ public class EmuViewer extends WindowAdapter implements DebuggerListener, Compon
     private final JPopupMenu popupMenu = new JPopupMenu();
     private final DebugViewer debugViewer;
     private final DisplayComponent displayComponent;
+
+    // reasonable popup size (file menus, etc) for large screen sizes, without being too big for small screens
+    private static final int PREFERRED_WIDTH = 800;
+    private static final int PREFERRED_HEIGHT = 600;
+    private static final Dimension POPUP_PREFERRED_SIZE = new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT);
+
+    private static final int GB_LCD_WIDTH = 160;
+    private static final int GB_LCD_HEIGHT = 144;
 
     public EmuViewer(CPU cpu, Memory memory, Display display, DebugViewer debugViewer) {
         this.cpu = cpu;
@@ -65,7 +73,7 @@ public class EmuViewer extends WindowAdapter implements DebuggerListener, Compon
         // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
         JFileChooser fc = new JFileChooser();
         // reasonable size on large screens, not too big for tiny screens
-        fc.setPreferredSize(new Dimension(800, 600));
+        fc.setPreferredSize(POPUP_PREFERRED_SIZE);
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setDialogTitle("Load ROM");
         fc.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -109,7 +117,7 @@ public class EmuViewer extends WindowAdapter implements DebuggerListener, Compon
         // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
         JFileChooser fc = new JFileChooser();
         // reasonable size on large screens, not too big for tiny screens
-        fc.setPreferredSize(new Dimension(800, 600));
+        fc.setPreferredSize(POPUP_PREFERRED_SIZE);
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setDialogTitle("Load State");
         fc.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -142,8 +150,7 @@ public class EmuViewer extends WindowAdapter implements DebuggerListener, Compon
         // default to home folder on Linux, My Documents or such on Windows, probably something similar on OSX
         JFileChooser fc = new JFileChooser();
         fc.setSelectedFile(new File("myState.state"));
-        // reasonable size on large screens, not too big for tiny screens
-        fc.setPreferredSize(new Dimension(800, 600));
+        fc.setPreferredSize(POPUP_PREFERRED_SIZE);
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setDialogTitle("Save State");
         fc.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -372,13 +379,9 @@ public class EmuViewer extends WindowAdapter implements DebuggerListener, Compon
      */
     @Override public void componentResized(final ComponentEvent e) {
         Dimension size = frame.getContentPane().getSize();
-        int scaleHeight = size.height / 144;
-        int scaleWidth = size.width / 160;
-        if (scaleHeight <= scaleWidth) {
-            displayComponent.setScalingFactor(scaleHeight);
-        } else {
-            displayComponent.setScalingFactor(scaleWidth);
-        }
+        int scaleHeight = size.height / GB_LCD_HEIGHT;
+        int scaleWidth = size.width / GB_LCD_WIDTH;
+	displayComponent.setScalingFactor(Math.min(scaleHeight, scaleWidth));
 
         displayComponent.setLocation((size.width - displayComponent.getPreferredSize().width) / 2, (size.height - displayComponent.getPreferredSize().height) / 2);
     }

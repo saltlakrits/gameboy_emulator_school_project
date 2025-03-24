@@ -33,6 +33,7 @@ public class Registers implements Serializable
     private static final int TOP_NIBBLES = 0xFF00;
     private static final int BOTTOM_NIBBLES = 0xFF;
     private static final int TWO_BYTES = 0xFFFF;
+    private static final int STACK_POINTER_INITIAL_VALUE = 0xFFFE;
 
     public Registers() {
         initRegisters();
@@ -41,7 +42,7 @@ public class Registers implements Serializable
     public void initRegisters() {
         for (int i = 0; i < registers.length; i++) {
             // SP starts at 0xFFFE (end of high ram), rest of the registers are initialized to 0
-            registers[i] = new UnsignedShort((i == 4 ? 0xFFFE : 0));
+            registers[i] = new UnsignedShort((i == 4 ? STACK_POINTER_INITIAL_VALUE : 0));
         }
     }
 
@@ -152,7 +153,7 @@ public class Registers implements Serializable
      */
     public static Reg getSourceRegByNibble(int nibble) {
 
-        // pattern repeats from 7-F, so we can just modulo the nibble
+        // pattern repeats from 8-F, so we can just modulo the nibble
         return switch (nibble % 8) {
             case 0x0 -> Reg.B;
             case 0x1 -> Reg.C;
@@ -167,7 +168,7 @@ public class Registers implements Serializable
     }
 
     /**
-     * Get the zero flag from the F, flag, register.
+     * Get the zero flag, bit 7, from the F, flag, register.
      *
      * @return flag value
      */
@@ -176,7 +177,7 @@ public class Registers implements Serializable
     }
 
     /**
-     * Get the subtraction flag from the F, flag, register.
+     * Get the subtraction flag, bit 6, from the F, flag, register.
      *
      * @return flag value
      */
@@ -185,7 +186,7 @@ public class Registers implements Serializable
     }
 
     /**
-     * Get the half-carry flag from the F, flag, register.
+     * Get the half-carry flag, bit 5, from the F, flag, register.
      *
      * @return flag value
      */
@@ -194,7 +195,7 @@ public class Registers implements Serializable
     }
 
     /**
-     * Get the carry flag from the F, flag, register.
+     * Get the carry flag, bit 4, from the F, flag, register.
      *
      * @return flag value
      */

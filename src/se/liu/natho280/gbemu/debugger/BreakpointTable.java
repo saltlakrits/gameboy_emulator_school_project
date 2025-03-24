@@ -14,6 +14,8 @@ public class BreakpointTable {
     private DefaultTableModel breakpointTableModel;
     private JScrollPane breakpointTableScrollPane = null;
 
+    private static final int FONT_SIZE = 12;
+
     public BreakpointTable() {
 	String[] columnNames = {"Breakpoint"};
 	this.breakpointTableModel = new DefaultTableModel(columnNames, 0);
@@ -34,7 +36,7 @@ public class BreakpointTable {
 	// remove default keybinding, our table isn't editable anyway!
 	breakpointTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F2"), "none");
 
-	breakpointTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
+	breakpointTable.setFont(new Font("Monospaced", Font.PLAIN, FONT_SIZE));
 	this.breakpointTableScrollPane = new JScrollPane(breakpointTable);
     }
 

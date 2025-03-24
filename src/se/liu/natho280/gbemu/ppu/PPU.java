@@ -36,6 +36,23 @@ public class PPU {
     private int flags = 0;
     private final List<OAM> lineOAMs = new ArrayList<>();
 
+    private static final int TILEMAP_1 = 0x9800;
+    private static final int TILEMAP_2 = 0x9C00;
+
+    private static final int GB_LCD_WIDTH = 160;
+
+    /** Tiles are 8x8 pixels. */
+    private static final int TILE_DIMENSION = 8;
+    /** Tilemaps are 32*32 tiles. */
+    private static final int TILEMAP_DIMENSION = 32;
+    /** Total tiles in a tilemap */
+    private static final int TILEMAP_TOTAL = TILEMAP_DIMENSION * TILEMAP_DIMENSION;
+
+    /** Start address of VRAM region, also used as base pointer when using unsigned tile addresses */
+    private static final int UNSIGNED_BASE_POINTER = 0x8000;
+    /** Base pointer address when using signed addressing for tiles */
+    private static final int SIGNED_BASE_POINTER = 0x9000;
+
     // these lacked performance
     // NOTE: they probably didn't, we just ran the PPU way too frequently (redrawing the same line many times per frame)
     // it is unlikely they were actually a bottleneck. that said, these FIFOs ended up being more convenient for the
@@ -43,6 +60,7 @@ public class PPU {
     // ArrayDeque<FIFOPixel> bgFifo = new ArrayDeque<>();
     // ArrayDeque<FIFOPixel> sprFifo = new ArrayDeque<>();
 
+    private static final int FIFO_CAPACITY = 8;
     /**
      * First In First Out queue for background pixels.
      */
@@ -51,6 +69,14 @@ public class PPU {
      * First In First Out queue for sprite pixels.
      */
     private FIFOQueue spriteFIFO = new FIFOQueue();
+
+    /** Sprites have an X coordinate equal to their starting X-coordinate + 8 */
+    private static final int SPRITE_X_OFFSET = 8;
+    /** SPrites have a Y coordinate equal to their starting Y-coordinate + 16 (even if they are only 8 pixels tall) */
+    private static final int SPRITE_Y_OFFSET = 16;
+
+    /** When using tile indices to access tiles in memory, the tile index is multiplied by 16 and added to a base pointer address. */
+    private static final int TILE_ADDRESSING_MULTIPLIER = 16;
 
     public PPU(Display display, Memory memory) {
         this.display = display;
@@ -70,7 +96,7 @@ public class PPU {
             default:
                 CuteLogger.log(Level.FINE, "Unknown color: " + color);
                 System.exit(-1); // unrecoverable
-                return null;
+                return null; // silencing language server
         }
     }
 
@@ -208,11 +234,8 @@ public class PPU {
 
         // if bit 0 is 0, we don't draw objects at all!
         if ((lcdc & 0x1) == 1) {
-//            if (ly == 128) System.out.println("YEAH");
-            // for a given scanline, we only draw a maximum of 10 sprites. filter the rest out.
             for (OAM obj : oams) {
                 if (ly >= obj.getY() - 16 && obj.getY() - 16 + spriteHeight > ly) {
-//                    System.out.println("this is some real ghetto debugging");
                     lineOAMs.add(obj);
                 }
 
@@ -250,20 +273,20 @@ public class PPU {
 
         int x = 0;
         // FIFOQueue stage
-        while (x < 160) {
+        while (x < GB_LCD_WIDTH) {
             // get tile
             // -- we determine which background/window tile to fetch pixels from. we default to 0x9800 tilemap.
-            int tilemapAddress = 0x9800;
+            int tilemapAddress = TILEMAP_1;
 
             // some things can change this.
             // if LCDC.3 and fetcherX-coord is not inside window, use 0x9c00.
             // NOTE: very hazy about the "fetcherX-coord inside the window" part. But I do know that the window is as
             // big as the background, you're just not supposed to overlay the entire window over the bg.
             if ((lcdc & (1 << 3)) !=  0 && (x < wx || ly < wy || (lcdc & (1 << 6)) == 0)) {
-                tilemapAddress = 0x9C00;
+                tilemapAddress = TILEMAP_2;
             }
             if ((lcdc & (1 << 6)) !=  0 && x >= wx && ly >= wy && (lcdc & (1 << 5)) != 0) {
-                tilemapAddress = 0x9C00;
+                tilemapAddress = TILEMAP_2;
             }
 
             int fetcherY, fetcherX; // coords for the tile fetcher
@@ -280,12 +303,12 @@ public class PPU {
                 // use window coords to get window tile!
                 // WE FLUSH THE BG PIXELS AND GET WINDOW PIXELS
                 fetcherY = ly - wy; // i think this is wrong, should be WINDOW_LINE_COUNTER
-                fetcherX = (x - wx) / 8;
+                fetcherX = (x - wx) / TILE_DIMENSION;
             } else {
                 // use mathy coords to get bg tile! note that it is moved by scrolling
                 // NOTE that we still need to drop (scx % 8) pixels at the start of the scanline!!!
                 fetcherY = (ly + scy) & 0xFF;
-                fetcherX = ((x + scx) / 8) & 0x1F;
+                fetcherX = ((x + scx) / TILE_DIMENSION) % TILEMAP_DIMENSION;
             }
 
 
@@ -294,7 +317,7 @@ public class PPU {
                 buildBgFifo(lcdc, tilemapAddress, fetcherY, fetcherX);
                 // drop (scx % 8) pixels iff we are at the start of the scanline
                 if (x == 0 && !inWindow) {
-                    for (int i = 0; i < (scx % 8); i++) {
+                    for (int i = 0; i < (scx % TILE_DIMENSION); i++) {
                         backgroundFIFO.pop();
                     }
                 }
@@ -368,7 +391,8 @@ public class PPU {
         int bgPixelRow = getBgOrWindowTileRow(lcdc, tilemapAdr, fetcherY, fetcherX);
         // TODO this may be slightly inefficient, doubt it matters in practice
         // add the row of bgPixels to the bgFifo
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < FIFO_CAPACITY; i++) {
+            // grab a 2-bit color from somewhere in the pixelRow
             int pixelColor =  bgPixelRow & (0x3 << (14 - (i * 2)));
             pixelColor >>= (14 - (i * 2));
             // note that only the first parameter matters for background/window tiles!
@@ -379,24 +403,24 @@ public class PPU {
     private void buildSprFifo(int spriteHeight, int x, int ly) {
         // the sprite fifo should always be filled, but if there are no sprites to draw, it should be filled
         // with blank, low-prio pixels that will be replaced by the background
-        if (spriteFIFO.size() < 8) {
-            for (int i = (8 - spriteFIFO.size()); i > 0; i--) {
+        if (spriteFIFO.size() < FIFO_CAPACITY) {
+            for (int i = (FIFO_CAPACITY - spriteFIFO.size()); i > 0; i--) {
                 spriteFIFO.add(new FIFOPixel(0, false, true));
             }
         }
         for (OAM sprite : lineOAMs) {
             // ensure that we are within the sprite; not before and not beyond
-            if (x >= (sprite.getX() - 8) && x < sprite.getX()) {
+            if (x >= (sprite.getX() - SPRITE_X_OFFSET) && x < sprite.getX()) {
                 int spriteTileAddress = sprite.getTileAddress();
 
-                int spriteRow = ly - (sprite.getY() - 16);
+                int spriteRow = ly - (sprite.getY() - SPRITE_Y_OFFSET);
                 if (sprite.getFlagYFlip()) spriteRow = (spriteHeight - 1) - spriteRow;
                 spriteRow *= 2;
 
                 int firstSpriteByte = memory.unconditionalRead(spriteTileAddress + spriteRow);
                 int secondSpriteByte = memory.unconditionalRead(spriteTileAddress + spriteRow + 1);
 
-                int spriteX = x - (sprite.getX() - 8);
+                int spriteX = x - (sprite.getX() - SPRITE_X_OFFSET);
 
                 int pixelRow = joinRowBytes(firstSpriteByte, secondSpriteByte);
 
@@ -423,21 +447,22 @@ public class PPU {
      * @param fetcherX self-explanatory, will be 0-31
      * @return two bytes OR'd together, first one in top 8 bits, second one in bottom 8 bits
      */
-    private int getBgOrWindowTileRow(int lcdc, int tilemapAdr, int y, int fetcherX) {
+    private int getBgOrWindowTileRow(int lcdc, int tilemapAddress, int y, int fetcherX) {
         // find out addressing mode!
         boolean unsignedAddressing = (lcdc & (1 << 4)) != 0;
 
         // divide y by 8 to find the row number.
-        int tileAdrOffset = memory.unconditionalRead(tilemapAdr + (((y / 8) * 32 + fetcherX) & 0x3ff));
+        int tileAddressOffset = memory.unconditionalRead(tilemapAddress + (((y / TILE_DIMENSION) * TILEMAP_DIMENSION + fetcherX) % TILEMAP_TOTAL));
         // now to find the actual address to read the tile data from.
-        int tileAddress = (unsignedAddressing ? (0x8000 + 16 * tileAdrOffset) : (0x9000 +  16 * (byte)tileAdrOffset));
-        //if (tilemapAdr == 0x9C00) System.out.println("Tile address: 0x" + Integer.toHexString(tileAddress).toUpperCase());
+        int tileAddress = (unsignedAddressing ? (UNSIGNED_BASE_POINTER + TILE_ADDRESSING_MULTIPLIER * tileAddressOffset)
+                                              : (SIGNED_BASE_POINTER +  TILE_ADDRESSING_MULTIPLIER * (byte)tileAddressOffset));
+        //if (tilemapAddress == 0x9C00) System.out.println("Tile address: 0x" + Integer.toHexString(tileAddress).toUpperCase());
 
         // this is the actual address of the tile we are looking up. THROUGH the tilemap!
 
         // now we find the y offset. this is how many bytes we skip ahead to get to our sought bytes.
         // putting it differently, this is the *row of the tile* that we read, or the tile-internal y-coordinate.
-        int yOffset = (y % 8) * 2;
+        int yOffset = (y % TILE_DIMENSION) * 2; // twice as many bytes horisontally as there are vertically, therefore doubled
         return getTileRow(tileAddress, yOffset);
     }
 

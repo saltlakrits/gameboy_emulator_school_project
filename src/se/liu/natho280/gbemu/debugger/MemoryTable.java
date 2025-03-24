@@ -16,6 +16,17 @@ public class MemoryTable implements MemoryListener {
     private DefaultTableModel tableModel = null;
     private JScrollPane memoryTableScrollPane = null;
 
+    private static final int BYTES_IN_MEMORY = 0x10_000;
+    private static final int BYTES_PER_ROW = 16;
+    private static final int ADDRESS_COL_WIDTH = 60;
+    private static final int BYTE_COL_WIDTH = 40;
+    private static final int FONT_SIZE = 12;
+
+    // the memory table is the biggest element in the debugger, and we use it to find a reasonable size for the frame, such that
+    // the rest of the components can simply take up maximum space
+    private static final int MEMORY_TABLE_WIDTH = 720;
+    private static final double MEMORY_TABLE_RELATIVE_HEIGHT = 0.4; // relative to screen height
+
     public MemoryTable(Memory memory) {
         this.memory = memory;
         memory.addMemoryListener(this);
@@ -41,11 +52,11 @@ public class MemoryTable implements MemoryListener {
         };
 
         // We want to populate the addresses from $0000 to $FFFF
-        for (int i = 0; i < 0x10_000; i += 0x10) {
+        for (int i = 0; i < BYTES_IN_MEMORY; i += BYTES_PER_ROW) {
             String address = String.format("$%04X", i);
             Object [] row = new Object [columnNames.length];
             row[0] = address;
-            for (int j = 0; j < 16; j++) {
+            for (int j = 0; j < BYTES_PER_ROW; j++) {
                 row[j + 1] = String.format("%02X", memory.unconditionalRead(i + j));
             }
             tableModel.addRow(row);
@@ -56,20 +67,21 @@ public class MemoryTable implements MemoryListener {
         // remove default keybinding, our table isn't editable anyway!
         memoryTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F2"), "none");
 
-        memoryTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        // reasonable default font size
+        memoryTable.setFont(new Font("Monospaced", Font.PLAIN, FONT_SIZE));
         memoryTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         TableColumnModel colMod = memoryTable.getColumnModel();
         colMod.getColumn(0).setResizable(false);
-        colMod.getColumn(0).setPreferredWidth(60);
-        for (int i = 1; i < 17; i++) {
+        colMod.getColumn(0).setPreferredWidth(ADDRESS_COL_WIDTH);
+        for (int i = 1; i < (BYTES_PER_ROW + 1); i++) {
             colMod.getColumn(i).setResizable(false);
-            colMod.getColumn(i).setPreferredWidth(40);
+            colMod.getColumn(i).setPreferredWidth(BYTE_COL_WIDTH);
         }
 
         memoryTableScrollPane = new JScrollPane(memoryTable);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        memoryTableScrollPane.setPreferredSize(new Dimension(720, (int)(screenSize.height * 0.4)));
+        memoryTableScrollPane.setPreferredSize(new Dimension(MEMORY_TABLE_WIDTH, (int)(screenSize.height * MEMORY_TABLE_RELATIVE_HEIGHT)));
     }
 
     /**
@@ -77,7 +89,7 @@ public class MemoryTable implements MemoryListener {
      * @param index
      */
     public void memoryChanged(int index) {
-        tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(index)), index / 16, (index % 16) + 1);
+        tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(index)), index / BYTES_PER_ROW, (index % BYTES_PER_ROW) + 1);
         // memoryTable.clearSelection();
         // memoryTable.changeSelection(index / 16, (index % 16) + 1, false, false);
     }
@@ -87,8 +99,8 @@ public class MemoryTable implements MemoryListener {
      */
     public void updateTimersInDebugger() {
         // FF04 == div, FF05 = tima
-        tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(0xFF04)), 0xFF04 / 16, (0xFF04 % 16) + 1);
-        tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(0xFF05)), 0xFF05 / 16, (0xFF05 % 16) + 1);
+        tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(0xFF04)), 0xFF04 / BYTES_PER_ROW, (0xFF04 % BYTES_PER_ROW) + 1);
+        tableModel.setValueAt(String.format("%02X", memory.unconditionalRead(0xFF05)), 0xFF05 / BYTES_PER_ROW, (0xFF05 % BYTES_PER_ROW) + 1);
     }
 
     /**

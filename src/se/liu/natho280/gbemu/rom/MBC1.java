@@ -18,7 +18,6 @@ import java.util.logging.Level;
 /**
  * MBC1, the simplest MBC. See the link for information.
  * NOTE: This class is halfway implemented, as such there are warnings!
- *
  * Battery (saving) and RAM functionality is baked into this class!
  *
  * @see <a href=https://gbdev.io/pandocs/MBC1.html>Pan Docs - MBC1</a>
@@ -47,6 +46,13 @@ public class MBC1 extends AbstractMBC {
         this.advancedBankingMode = data[5] == 1;
     }
 
+    /**
+     * Naive implementation of the address redirection. The vast majority of games did not change banks between addresses 0x0 and 0x3FFF,
+     * since it would mean having to duplicate the interrupt routines and a lot of other "boilerplate", so we can get a lot of games running
+     * while ignoring the possibility!
+     * @param address
+     * @return
+     */
     @Override
     public int redirectedAddress(int address) {
         // example: rom.get(address) -> rom[mbc.redirectedAddress(address)]
@@ -57,11 +63,8 @@ public class MBC1 extends AbstractMBC {
             // if we are looking at 0x4000, and bank is 2, we should get back 0x8000
             // Rombank size : 0x4000
             return address + (((romBank == 0 ? 1 : romBank) - 1) * ADDRESS_OFFSET);
-//            return ((address & 0x3FFF) | ((romBank == 0 ? 1 : romBank) << 14));
         }
         if (address >= 0xA000 && address <= 0xBFFF) {
-            // do stuff to the ram address!
-            // FIXME principally correct, may be off by one..?
             if ((address - 0xA000 + (ramBank * 0x2000)) >= 0x2000) {
                 CuteLogger.log(Level.SEVERE, Integer.toHexString((address - 0xA000 + (ramBank * 0x2000))).toUpperCase() + " is too big");
             }
@@ -75,6 +78,12 @@ public class MBC1 extends AbstractMBC {
         return ramEnabled;
     }
 
+    /**
+     * Save RAM to file, for games that had a battery in the cartridge. The save data then lies in RAM, which is kept alive between
+     * sessions.
+     * @param fileName
+     * @param ram
+     */
     @Override public void saveRAM(final String fileName, final UnsignedByte[] ram) {
         Gson gson = new Gson();
 
@@ -86,6 +95,12 @@ public class MBC1 extends AbstractMBC {
 	}
     }
 
+    /**
+     * Load RAM from file, for games that had a battery in the cartridge. The save data then lies in RAM, which is kept alive between
+     * sessions.
+     * @param fileName
+     * @return
+     */
     @Override public UnsignedByte[] loadRAM(final String fileName) {
         Gson gson = new Gson();
 
@@ -99,6 +114,10 @@ public class MBC1 extends AbstractMBC {
         }
     }
 
+    /**
+     * Turns the MBC1 object into a SerializableMBC object, for serializing into a save state.
+     * @return
+     */
     @Override
     public SerializableMBC makeSerializable() {
         // prepare int array to save information
@@ -125,6 +144,11 @@ public class MBC1 extends AbstractMBC {
         return mbcCopy;
     }
 
+    /**
+     * Handles writing to registers in the MBC chip on the cartridge, which determines the active ROM bank, RAM bank, etc.
+     * @param address
+     * @param value
+     */
     @Override
     public void write(int address, int value) {
         if (address <= 0x1FFF) {

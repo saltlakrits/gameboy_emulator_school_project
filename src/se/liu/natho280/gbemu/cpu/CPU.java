@@ -22,6 +22,11 @@ public class CPU extends Registers {
     private boolean halted = false;
     private int haltBugCounter = 0;
 
+    /** For timers. Number of T-cycles per second. */
+    private static final int DOTS_PER_SECOND = 4_194_300;
+    /** DIV Timer increments by 16384 every second, calculated by hand. */
+    private static final int DIV_TIMER_INCREMENTS_PER_SECOND = 16384;
+
     /**
      * For synchronizing the CPU with UI ROM-changing and save/load state functionality
       */
@@ -1437,32 +1442,42 @@ public class CPU extends Registers {
                 regs.setHalfcarryFlag(false);
                 if (sourceReg == Reg.HL) cycles++; // using HL as pointer always takes an extra cycle
 
-                if (secondNibble <= 0x7 && secondNibble != 0x6) {
-                    // cycles: 2, RLC r8
-                    regs.setCarryFlag((sourceRegValue & (1 << 7)) == (1 << 7));
-                    // note that the eighth bit rotates around to the first index, and the other bits shift one place to the left
-                    regs.set(sourceReg, (sourceRegValue << 1) | ((sourceRegValue & (1 << 7)) >> 7));
-                    regs.setZeroFlag(regs.get(sourceReg) == 0x0);
-                } else if (secondNibble == 0x6) {
-                    // cycles: 4, RLC (HL)
-                    regs.setCarryFlag((sourceRegValue & (1 << 7)) == (1 << 7));
-                    // note that the eighth bit rotates around to the first index, and the other bits shift one place to the left
-                    memory.write(regs.get(Reg.HL), (sourceRegValue << 1) | ((sourceRegValue & (1 << 7)) >> 7));
-                    regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
-                    cycles += 2;
-                } else if (secondNibble != 0xE) {
-                    // cycles: 2, RRC r8
-                    regs.setCarryFlag((sourceRegValue & 0x1) == 0x1);
-                    // not that the first bit rotates around to the eighth index, and the other bits shift one place to the right
-                    regs.set(sourceReg, (sourceRegValue >> 1) | ((sourceRegValue & 0x1) << 7));
-                    regs.setZeroFlag(regs.get(sourceReg) == 0x0);
+                if (secondNibble <= 0x7) {
+                    int rotatedValue = (sourceRegValue << 1);
+                    rotatedValue |= ((sourceRegValue & (1 << 7)) >> 7);
+
+		    regs.setCarryFlag((sourceRegValue & (1 << 7)) == (1 << 7));
+
+		    if (secondNibble == 0x6) {
+                        // cycles: 4, RLC (HL)
+			// note that the eighth bit rotates around to the first index, and the other bits shift one place to the left
+                        memory.write(regs.get(Reg.HL), rotatedValue);
+                        regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
+                        cycles += 2;
+                    } else {
+                        // cycles: 2, RLC r8
+			// note that the eighth bit rotates around to the first index, and the other bits shift one place to the left
+                        regs.set(sourceReg, rotatedValue);
+                        regs.setZeroFlag(regs.get(sourceReg) == 0x0);
+                    }
                 } else {
-                    // cycles: 4, RRC (HL)
                     regs.setCarryFlag((sourceRegValue & 0x1) == 0x1);
-                    // not that the first bit rotates around to the eighth index, and the other bits shift one place to the right
-                    memory.write(regs.get(Reg.HL), (sourceRegValue >> 1) | ((sourceRegValue & 0x1) << 7));
-                    regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
-                    cycles += 2;
+                    int rotatedValue = (sourceRegValue >> 1) | ((sourceRegValue & 0x1) << 7);
+
+                    if (secondNibble == 0xE) {
+                        // cycles: 4, RRC (HL)
+                        // not that the first bit rotates around to the eighth index, and the other bits shift one place to the right
+                        memory.write(regs.get(Reg.HL), rotatedValue);
+                        regs.setZeroFlag(memory.read(regs.get(Reg.HL)) == 0x0);
+                        cycles += 2;
+                    } else {
+                        // cycles: 2, RRC r8
+                        // not that the first bit rotates around to the eighth index, and the other bits shift one place to the right
+                        regs.set(sourceReg, rotatedValue);
+                        regs.setZeroFlag(regs.get(sourceReg) == 0x0);
+                    }
+
+
                 }
                 break;
             case 0x1:
@@ -1525,7 +1540,7 @@ public class CPU extends Registers {
 
                 final int swapped = (sourceRegValue & 0xF0) >> 4 | (sourceRegValue & 0xF) << 4;
 
-                if (secondNibble <= 7 && secondNibble != 0x6) {
+                if (secondNibble <= 0x7 && secondNibble != 0x6) {
                     // cycles: 2, SWAP r8 (swap the nibbles)
                     regs.setCarryFlag(false);
                     regs.set(sourceReg, swapped);
@@ -1676,12 +1691,12 @@ public class CPU extends Registers {
      */
     public void updateTimers(int cycles) {
 
+        // maybe these don't need to be doubles, TODO
         // FF04 incs by 16384 every SECOND
         // divide that by dots
-        double dotsPerSecond = 4.1943 * 1_000_000;
         // 4 dots per m cycle
-        double cyclesPerSecond = dotsPerSecond / 4;
-        double divIncrement = (16384 * (cycles / cyclesPerSecond)); // maybe this will floor to 0, TODO
+        double cyclesPerSecond = (double)DOTS_PER_SECOND / 4;
+        double divIncrement = (DIV_TIMER_INCREMENTS_PER_SECOND * (cycles / cyclesPerSecond));
 
         memory.incDivTimer(divIncrement);
 

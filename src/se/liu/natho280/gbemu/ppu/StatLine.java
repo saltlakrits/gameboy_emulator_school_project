@@ -21,7 +21,7 @@ public class StatLine {
         line <<= 1; // shift left
         line &= 0xF; // only keep rightmost 4 bits
         line |= isHigh ? 1 : 0; // OR in the new signal
-        return (line & 0x3) == 0x1; // return whether line went from low to high -> STAT interrupt
+        return (line & 0b11) == 0b01; // return whether line went from low to high
     }
 
     public void reset() {

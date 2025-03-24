@@ -6,12 +6,14 @@ package se.liu.natho280.gbemu.cpu;
  * @see Unsigned
  */
 public class UnsignedShort extends Unsigned {
+    private static final int SHORT_MAX = 0xFFFF; // 16 bits, 65535 is the highest unsigned value
+
     public UnsignedShort(int value) {
         super(value);
     }
 
     @Override
     protected int clamp(int value) {
-        return (value & 0xFFFF);
+        return (value & SHORT_MAX);
     }
 }

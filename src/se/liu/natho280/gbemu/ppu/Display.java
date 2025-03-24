@@ -20,9 +20,13 @@ import java.util.List;
  * @see <a href=https://gbdev.io/pandocs/Rendering.html>Pan Docs - Rendering</a>
  */
 public class Display {
-    private final Pixel[][] display = new Pixel[144][160];
+
+    private static final int GB_LCD_WIDTH = 160;
+    private static final int GB_LCD_HEIGHT = 144;
+
+    private final Pixel[][] display = new Pixel[GB_LCD_HEIGHT][GB_LCD_WIDTH];
     private final List<DisplayListener> displayListeners = new ArrayList<>();
-    private Pixel[][] displayCopy = new Pixel[144][160];
+    private Pixel[][] displayCopy = new Pixel[GB_LCD_HEIGHT][GB_LCD_WIDTH];
 
     public Display() {
         for (int y = 0; y < getHeight(); y++) {
@@ -35,7 +39,7 @@ public class Display {
 
     public void putPixel(int x, int y, Pixel pixel) {
         display[y][x] = pixel;
-        if ( y == 143 && x == 159) {
+        if ( y == (GB_LCD_HEIGHT - 1) && x == (GB_LCD_WIDTH - 1)) {
             displayCopy = getDisplayCopy();
             notifyDisplayListeners();
         }

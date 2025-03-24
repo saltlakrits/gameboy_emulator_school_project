@@ -15,7 +15,9 @@ public class FIFOQueue {
     private int bitfield = 0;
     private int length = 0;
 
-    private static final int LEFTMOST_SHIFT = 7 * 4;
+    private static final int BITS_PER_NIBBLE = 4;
+    private static final int NIBBLES_IN_QUEUE = 8;
+    private static final int LEFTMOST_SHIFT = (NIBBLES_IN_QUEUE - 1) * BITS_PER_NIBBLE;
     private static final int LEFTMOST_MASK = (0xF << LEFTMOST_SHIFT);
 
     // Encoding: 2 bits for color, 1 bit for palette, 1 bit for prio
@@ -39,8 +41,8 @@ public class FIFOQueue {
      */
     private FIFOPixel decode(int fpxBits) {
         return new FIFOPixel(fpxBits >>> 2,
-                             (fpxBits & 0x2) != 0,
-                             (fpxBits & 0x1) != 0);
+                             (fpxBits & (1 << 1)) != 0,
+                             (fpxBits & 1) != 0);
     }
 
     /**
@@ -53,7 +55,7 @@ public class FIFOQueue {
         }
 
         length++;
-        int shift = ((7 - (length - 1)) * 4);
+        int shift = (((NIBBLES_IN_QUEUE - 1) - (length - 1)) * BITS_PER_NIBBLE);
         bitfield |= (encode(fpx) << shift);
     }
 
@@ -62,7 +64,7 @@ public class FIFOQueue {
      * @param fpx a FIFOPixel
      */
     public void addIndex(FIFOPixel fpx, int index) {
-        int shiftIndex = (7 - index) * 4;
+        int shiftIndex = ((NIBBLES_IN_QUEUE - 1) - index) * BITS_PER_NIBBLE;
         bitfield &= (bitfield ^ (0xF << shiftIndex));
         bitfield |= (encode(fpx) << shiftIndex);
     }
@@ -73,7 +75,7 @@ public class FIFOQueue {
      * @return a FIFOPixel at the given index
      */
     public FIFOPixel get(int index) {
-        int shiftIndex = (7 - index) * 4;
+        int shiftIndex = ((NIBBLES_IN_QUEUE - 1) - index) * BITS_PER_NIBBLE;
         return decode((bitfield >> shiftIndex) & 0xF);
     }
 
@@ -90,7 +92,7 @@ public class FIFOQueue {
         FIFOPixel fpx = getFirst();
 
         // Shift a nibble out, dec length
-        bitfield <<= 4;
+        bitfield <<= BITS_PER_NIBBLE;
         length--;
 
         return fpx;
