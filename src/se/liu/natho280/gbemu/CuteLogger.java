@@ -10,7 +10,8 @@ import java.util.logging.SimpleFormatter;
  * Static object for logging. Logs logs for logical, logistical logging purposes.
  */
 public class CuteLogger {
-    private static final int FILE_LOG_LIMIT = 1024 * 1024;
+    private static final int KILOBYTE = 1024;
+    private static final int FILE_LOG_LIMIT = KILOBYTE * KILOBYTE; // a MiB
     private static final Logger LOGGER = Logger.getLogger("se.liu.natho280.gbemu");
 
     public static void log(Level l, String message) {

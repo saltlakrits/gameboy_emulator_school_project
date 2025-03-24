@@ -78,6 +78,7 @@ public class Memory implements Serializable
             CuteLogger.log(Level.INFO, "Successfully loaded ROM.");
         } catch (IllegalStateException e) {
             this.validROM = false;
+            CuteLogger.log(Level.WARNING, "Failed to load ROM. Error: " + e.getMessage());
             JOptionPane.showMessageDialog(null, e.getMessage() + "\n\nTip: Make sure the file you are trying to load is a Game Boy ROM-file!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
