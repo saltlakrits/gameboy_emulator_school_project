@@ -53,9 +53,13 @@ public class DebugViewer implements MBCListener, RegisterListener {
      */
     public void addBreakpoint() {
         try {
-            int newBreakpointAddress = Integer.parseInt(JOptionPane.showInputDialog(frame, "Address for new breakpoint:", "Add Breakpoint", JOptionPane.PLAIN_MESSAGE), 16);
-            breakpoints.add(newBreakpointAddress);
-            this.breakpointTable.addBreakpoint(newBreakpointAddress);
+            String newBreakpointInput =
+                    JOptionPane.showInputDialog(frame, "Address for new breakpoint:", "Add Breakpoint", JOptionPane.PLAIN_MESSAGE);
+            if (newBreakpointInput != null) {
+                int newBreakpointAddress = Integer.parseInt(newBreakpointInput, 16);
+                breakpoints.add(newBreakpointAddress);
+                this.breakpointTable.addBreakpoint(newBreakpointAddress);
+            }
         } catch (NumberFormatException ex) {
             CuteLogger.log(Level.WARNING, ex.getMessage());
             JOptionPane.showMessageDialog(null, "Failed to add breakpoint!\n\nError: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -66,13 +70,26 @@ public class DebugViewer implements MBCListener, RegisterListener {
      * Removes a breakpoint from both the internal list and the UI
      */
     public void removeBreakpointIndex() {
-        try {
-            int index = Integer.valueOf((String)JOptionPane.showInputDialog(frame, "Index to remove:", "Remove Breakpoint", JOptionPane.PLAIN_MESSAGE, null, null, getBreakpoints().size())) - 1;
-            breakpoints.remove(index);
-            this.breakpointTable.removeBreakpoint(index);
-        } catch (IndexOutOfBoundsException | NumberFormatException ex) {
-            CuteLogger.log(Level.WARNING, ex.getMessage());
-            JOptionPane.showMessageDialog(null, "Failed to remove breakpoint!\n\nError: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        if (getBreakpoints().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No breakpoints to remove!", "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            String removeBreakpointIndex = (String)JOptionPane.showInputDialog(frame, "Index to remove:", "Remove Breakpoint", JOptionPane.PLAIN_MESSAGE, null, null, getBreakpoints().size());
+            if (removeBreakpointIndex != null) {
+                try {
+                    int index = Integer.valueOf(removeBreakpointIndex, 16) - 1;
+                    if (index < 0 || index >= breakpoints.size()) {
+                        JOptionPane.showMessageDialog(null, "Invalid input; make sure your input matches a breakpoint index that you want to remove.", "Error",
+                                                      JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        breakpoints.remove(index);
+                        this.breakpointTable.removeBreakpoint(index);
+                    }
+                } catch (NumberFormatException ex) {
+                    CuteLogger.log(Level.WARNING, ex.getMessage());
+                    JOptionPane.showMessageDialog(null, "Failed to remove breakpoint!\n\nError: " + ex.getMessage(), "Error",
+                                                  JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
 
