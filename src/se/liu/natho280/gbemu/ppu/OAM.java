@@ -8,7 +8,8 @@ package se.liu.natho280.gbemu.ppu;
 public class OAM {
     private final int y;
     private final int x;
-    private final int index; // tile index
+    /** Tile index! */
+    private final int index;
     private final int flags;
 
     private static final int VRAM_START_ADDRESS = 0x8000;

@@ -121,8 +121,8 @@ public class FIFOQueue {
         if (isEmpty()) {
             throw new IndexOutOfBoundsException("The queue is empty");
         }
-        int fpxBits = ((bitfield & LEFTMOST_MASK) >>> LEFTMOST_SHIFT);
-        return decode(fpxBits);
+        int fifoPixelBits = ((bitfield & LEFTMOST_MASK) >>> LEFTMOST_SHIFT);
+        return decode(fifoPixelBits);
     }
 
     /**

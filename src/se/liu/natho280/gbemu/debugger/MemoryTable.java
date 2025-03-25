@@ -25,7 +25,8 @@ public class MemoryTable implements MemoryListener {
     // the memory table is the biggest element in the debugger, and we use it to find a reasonable size for the frame, such that
     // the rest of the components can simply take up maximum space
     private static final int MEMORY_TABLE_WIDTH = 720;
-    private static final double MEMORY_TABLE_RELATIVE_HEIGHT = 0.4; // relative to screen height
+    /** Relative to screen height! */
+    private static final double MEMORY_TABLE_RELATIVE_HEIGHT = 0.4;
 
     public MemoryTable(Memory memory) {
         this.memory = memory;

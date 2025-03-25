@@ -47,7 +47,7 @@ public class SerializationWrapper {
     }
 
     public void serialize(String savePath) {
-	try (BufferedWriter writer = new BufferedWriter(new FileWriter(savePath));) {
+	try (BufferedWriter writer = new BufferedWriter(new FileWriter(savePath))) {
 	    GSON.toJson(this, SerializationWrapper.class, writer);
 	} catch (IOException e) {
 	    CuteLogger.log(Level.SEVERE, e.getMessage());

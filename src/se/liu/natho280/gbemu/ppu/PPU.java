@@ -429,10 +429,10 @@ public class PPU {
                 for (int i = 0; i < 8; i++) {
                     if (spriteFIFO.get(i).colorValue == 0 || spriteFIFO.get(i).backgroundPrio) {
                         int shift = sprite.getFlagXFlip() ? ((i + spriteX) * 2) : (14 - ((i + spriteX) * 2));
-                        int pxColor = pixelRow & (0x3 << shift);
-                        pxColor >>= shift;
+                        int pixelColor = pixelRow & (0x3 << shift);
+                        pixelColor >>= shift;
 
-                        spriteFIFO.addIndex(new FIFOPixel(pxColor, sprite.getFlagPalette(), sprite.getFlagPriority()), i);
+                        spriteFIFO.addIndex(new FIFOPixel(pixelColor, sprite.getFlagPalette(), sprite.getFlagPriority()), i);
                     }
                 }
             }

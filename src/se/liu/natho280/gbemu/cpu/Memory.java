@@ -73,6 +73,10 @@ public class Memory implements Serializable
         }
     }
 
+    /**
+     * Constructor useful for if we modify our program to be able to accept a ROM file as command line argument. Dead code right now though!
+     * @param romPath
+     */
     public Memory(String romPath) {
         // create (& probably load) ROM with romPath string
 

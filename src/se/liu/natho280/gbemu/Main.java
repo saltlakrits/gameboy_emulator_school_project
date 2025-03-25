@@ -14,15 +14,19 @@ import se.liu.natho280.gbemu.ppu.PPU;
  * {@link PPU} (Picture Processing Unit, graphics) cycles.
  */
 public class Main {
-    private static final double DOTS_PER_SECOND = 4_194_300; // calculated by hand
+    /** For timers. Number of T-cycles per second. */
+    private static final double DOTS_PER_SECOND = 4_194_300;
     /** 59.73 frames per second for the LCD screen on the Game Boy */
     private static final double FRAMES_PER_SECOND = 59.73;
-    // about 70220.99... so add 1.
+    /** about 70220.99... so add 1 to round up. */
     private static final int DOTS_PER_FRAME = (int)(DOTS_PER_SECOND / FRAMES_PER_SECOND) + 1;
-    private static final int MS_PER_FRAME = 16; // roughly! actually 16.74
+    /** roughly! actually 16.74 */
+    private static final int MS_PER_FRAME = 16;
+    /** There are 4 "dots", or T-cycles, per M-cycle (referred to simply as "cycle" in the code) */
     private static final int DOTS_PER_CYCLE = 4;
 
     private static final int DOTS_PER_SCANLINE = 456;
+    /** Scanlines start at 0 and the last one is 143 */
     private static final int LAST_SCANLINE = 143;
     private static final int DOTS_IN_OAM_MODE = 80;
     private static final int DOTS_IN_MODE_3 = 172;
