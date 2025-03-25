@@ -263,8 +263,8 @@ public class PPU {
         int scy = memory.unconditionalRead(0xFF42); // scroll y
         int scx = memory.unconditionalRead(0xFF43); // scroll x
         int palette = memory.unconditionalRead(0xFF47); // 4-color palette
-        int sprPal1 = memory.unconditionalRead(0xFF48); // OBP0
-        int sprPal2 = memory.unconditionalRead(0xFF49); // OBP1
+        int firstSpritePalette = memory.unconditionalRead(0xFF48); // OBP0
+        int secondSpritePalette = memory.unconditionalRead(0xFF49); // OBP1
         // bit 2 of LCD Control flags determine whether sprite height is 8 or 16 pixels.
         int spriteHeight = (lcdc & (1 << 2)) == 0 ? 8 : 16;
         // note: when y >= wy && x >= (wx - 7), we should draw window pixels.
@@ -314,7 +314,7 @@ public class PPU {
 
             // check bg fifo: if size == 0, build it
             if (backgroundFIFO.isEmpty()) {
-                buildBgFifo(lcdc, tilemapAddress, fetcherY, fetcherX);
+                buildBackgroundFifo(lcdc, tilemapAddress, fetcherY, fetcherX);
                 // drop (scx % 8) pixels iff we are at the start of the scanline
                 if (x == 0 && !inWindow) {
                     for (int i = 0; i < (scx % TILE_DIMENSION); i++) {
@@ -324,26 +324,26 @@ public class PPU {
             }
 
             // add sprites to sprite FIFOQueue
-            buildSprFifo(spriteHeight, x, ly);
+            buildSpriteFifo(spriteHeight, x, ly);
 
             // now choose a pixel to push
             // if LCDC.7 is 0, the screen is off, and should be whiter than white! completely blank! no pixel colors!
 
 	    FIFOPixel candidate = spriteFIFO.pop();
             // If sprite color is 0, the pixel is transparent and should not be drawn
-            boolean bgInstead = candidate.colorValue == 0;
+            boolean backgroundInstead = candidate.colorValue == 0;
             // Priority: 0 = No, 1 = BG and Window colors 1–3 are drawn over this OBJ
-	    bgInstead = bgInstead || (candidate.bgPrio && backgroundFIFO.getFirst().colorValue > 0);
+	    backgroundInstead = backgroundInstead || (candidate.backgroundPrio && backgroundFIFO.getFirst().colorValue > 0);
             // if we are to push a pixel from sprFifo, but LCDC.1 is 0, it should be background!
-	    bgInstead = bgInstead || ((lcdc & (1 << 1)) == 0);
-            if (bgInstead) {
+	    backgroundInstead = backgroundInstead || ((lcdc & (1 << 1)) == 0);
+            if (backgroundInstead) {
                 // discard and draw bg instead
                 candidate = backgroundFIFO.pop();
                 candidate.colorValue = matchPixelColor(candidate.colorValue, palette);
             } else {
                 // we ARE drawing a sprite: fix palette
                 backgroundFIFO.pop();
-                candidate.colorValue = matchPixelColor(candidate.colorValue, candidate.palette ? sprPal2 : sprPal1);
+                candidate.colorValue = matchPixelColor(candidate.colorValue, candidate.palette ? secondSpritePalette : firstSpritePalette);
             }
 
             display.putPixel(x, ly, getPixel(candidate.colorValue));
@@ -387,20 +387,20 @@ public class PPU {
         }
     }
 
-    private void buildBgFifo(int lcdc, int tilemapAdr, int fetcherY, int fetcherX) {
-        int bgPixelRow = getBgOrWindowTileRow(lcdc, tilemapAdr, fetcherY, fetcherX);
+    private void buildBackgroundFifo(int lcdc, int tilemapAddress, int fetcherY, int fetcherX) {
+        int backgroundPixelRow = getBackgroundOrWindowTileRow(lcdc, tilemapAddress, fetcherY, fetcherX);
         // TODO this may be slightly inefficient, doubt it matters in practice
         // add the row of bgPixels to the bgFifo
         for (int i = 0; i < FIFO_CAPACITY; i++) {
             // grab a 2-bit color from somewhere in the pixelRow
-            int pixelColor =  bgPixelRow & (0x3 << (14 - (i * 2)));
+            int pixelColor =  backgroundPixelRow & (0x3 << (14 - (i * 2)));
             pixelColor >>= (14 - (i * 2));
             // note that only the first parameter matters for background/window tiles!
             backgroundFIFO.add(new FIFOPixel(pixelColor, false, false));
         }
     }
 
-    private void buildSprFifo(int spriteHeight, int x, int ly) {
+    private void buildSpriteFifo(int spriteHeight, int x, int ly) {
         // the sprite fifo should always be filled, but if there are no sprites to draw, it should be filled
         // with blank, low-prio pixels that will be replaced by the background
         if (spriteFIFO.size() < FIFO_CAPACITY) {
@@ -427,7 +427,7 @@ public class PPU {
                 // go through each pixel, replace it if transparent or it is low-prio
                 // i think this technically may not be accurate, but it's close enough
                 for (int i = 0; i < 8; i++) {
-                    if (spriteFIFO.get(i).colorValue == 0 || spriteFIFO.get(i).bgPrio) {
+                    if (spriteFIFO.get(i).colorValue == 0 || spriteFIFO.get(i).backgroundPrio) {
                         int shift = sprite.getFlagXFlip() ? ((i + spriteX) * 2) : (14 - ((i + spriteX) * 2));
                         int pxColor = pixelRow & (0x3 << shift);
                         pxColor >>= shift;
@@ -447,7 +447,7 @@ public class PPU {
      * @param fetcherX self-explanatory, will be 0-31
      * @return two bytes OR'd together, first one in top 8 bits, second one in bottom 8 bits
      */
-    private int getBgOrWindowTileRow(int lcdc, int tilemapAddress, int y, int fetcherX) {
+    private int getBackgroundOrWindowTileRow(int lcdc, int tilemapAddress, int y, int fetcherX) {
         // find out addressing mode!
         boolean unsignedAddressing = (lcdc & (1 << 4)) != 0;
 

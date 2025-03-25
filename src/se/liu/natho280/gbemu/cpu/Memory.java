@@ -182,11 +182,7 @@ public class Memory implements Serializable
         int mod = 0;
         // the following switch statement is many, many times slower as a Map than as a simple switch statement, as such it is left
         // as a switch
-        // it makes little sense to make an enum for this as well, since it is switching based on a memory value
-        //noinspection MapAsCode
-        //noinspection CaseValueMightBeEnum
-        // the first 2 bits of the timer control register determines how often TIMA increments. There is no suitable way to avoid
-        // these "magic numbers".
+        // the first 2 bits of the timer control register determines how often TIMA increments.
         switch (timerControl & firstTwoBits) {
             case 0:
                 mod = 256;
@@ -280,12 +276,10 @@ public class Memory implements Serializable
     public int read(int address) {
         if (address >= 0x0 && address <= ROM_END_ADDRESS) {
             return rom.get(address);
-        }
-        if (address >= RAM_START_ADDRESS && address <= RAM_END_ADDRESS) {
+        } else if (address >= RAM_START_ADDRESS && address <= RAM_END_ADDRESS) {
             // reading from RAM must be redirected through MBC
             return rom.get(address);
-        }
-        if (address == 0xFF00) {
+        } else if (address == 0xFF00) {
             // input register!
             // depending on bit 4 and bit 5, we should return different input registers
             int input = (unconditionalRead(0xFF00) & 0x30) >> 4;
@@ -296,8 +290,7 @@ public class Memory implements Serializable
             } else {
                 return 0xF;
             }
-        }
-        if (address >= VRAM_START_ADDRESS && address <= VRAM_END_ADDRESS) {
+        } else if (address >= VRAM_START_ADDRESS && address <= VRAM_END_ADDRESS) {
 //            if (!vramLocked) return memory[address].get();
 //            else return 0xFF;
             if (!vramLocked) return unconditionalRead(address);

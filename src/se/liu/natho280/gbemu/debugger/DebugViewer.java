@@ -57,8 +57,8 @@ public class DebugViewer implements MBCListener, RegisterListener {
             breakpoints.add(newBreakpointAddress);
             this.breakpointTable.addBreakpoint(newBreakpointAddress);
         } catch (NumberFormatException ex) {
-            System.err.println(ex.getMessage());
             CuteLogger.log(Level.WARNING, ex.getMessage());
+            JOptionPane.showMessageDialog(null, "Failed to add breakpoint!\n\nError: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -70,8 +70,9 @@ public class DebugViewer implements MBCListener, RegisterListener {
             int index = Integer.valueOf((String)JOptionPane.showInputDialog(frame, "Index to remove:", "Remove Breakpoint", JOptionPane.PLAIN_MESSAGE, null, null, getBreakpoints().size())) - 1;
             breakpoints.remove(index);
             this.breakpointTable.removeBreakpoint(index);
-        } catch (NumberFormatException ex) {
+        } catch (IndexOutOfBoundsException | NumberFormatException ex) {
             CuteLogger.log(Level.WARNING, ex.getMessage());
+            JOptionPane.showMessageDialog(null, "Failed to remove breakpoint!\n\nError: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

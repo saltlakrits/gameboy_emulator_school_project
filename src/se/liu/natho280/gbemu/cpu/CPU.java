@@ -122,12 +122,7 @@ public class CPU extends Registers {
      * @return a jump vector
      * @see <a href=https://gbdev.io/pandocs/Interrupt_Sources.html>Pan Docs - Interrupt Sources</a>
      */
-    @SuppressWarnings("MapAsCode")
     private int matchInterruptAddress(int bit) {
-        // switches based on a bit index, an enum makes this LESS readable
-        // makes no sense to make this a Map, as there is only downsides to it, and no gain
-        //noinspection CaseValueMightBeEnum
-        //noinspection MapAsCode
         switch (bit) {
             case 0:
                 return 0x40;
@@ -242,8 +237,6 @@ public class CPU extends Registers {
      * another method, ({@link #bigInstruction}).</p>
      * @return cycles it took to finish an instruction
      */
-    @SuppressWarnings({"NonCommentSourceStatements", "MagicNumberGeneric"})
-    // making this shorter, or making all the bit values constants only makes it less readable
     public int runCycle() {
         if (haltBugCounter == 1) {
             regs.addPC(-1);
@@ -1417,8 +1410,6 @@ public class CPU extends Registers {
      * @param d8 immediate 8-bit instruction
      * @see <a href=https://www.google.com/>Meganesu CPU Instructions (scroll down)</a>
      */
-    @SuppressWarnings({"NonCommentSourceStatements", "MagicNumberGeneric"})
-    // making this shorter, or making all the bit values constants only makes it less readable
     private void bigInstruction(int d8) {
         int firstNibble = (d8 & 0xF0) >> 4;
         int secondNibble = (d8 & 0x0F);

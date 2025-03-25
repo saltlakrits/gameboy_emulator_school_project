@@ -18,11 +18,11 @@ public class FIFOPixel {
      * Whether background color values > 0 has priority over this pixel when drawing on the
      * screen.
      */
-    public boolean bgPrio;
+    public boolean backgroundPrio;
 
     public FIFOPixel(int colorValue, boolean palette, boolean bgPrio) {
         this.colorValue = colorValue;
         this.palette = palette;
-        this.bgPrio = bgPrio;
+        this.backgroundPrio = bgPrio;
     }
 }

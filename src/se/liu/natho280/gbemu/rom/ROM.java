@@ -46,8 +46,7 @@ public class ROM implements Serializable {
 	// pick RAM size
 
         CuteLogger.log(Level.INFO, "Ram size in header: " + rom[0x149].get());
-        // switches based on a number read from the cartridge, enum simply unsuitable
-        //noinspection CaseValueMightBeEnum
+        // switches based on a number read from the cartridge header, enum is unsuitable
         switch (rom[0x149].get()) {
             case 0, 1:
                 this.ram = null;
@@ -110,8 +109,7 @@ public class ROM implements Serializable {
      * @throws IllegalStateException
      */
     private void selectMBC() throws IllegalStateException {
-        // switches based on a number read from the cartridge, enum simply unsuitable
-        //noinspection CaseValueMightBeEnum
+        // switches based on a number read from the cartridge header, enum is unsuitable
         switch (rom[0x147].get()) {
             case 0:
                 CuteLogger.log(Level.INFO, "Picked MBC0.");
@@ -245,8 +243,6 @@ public class ROM implements Serializable {
             return (1 << (memoryValue + 1));
         }
 
-        // switches based on numeric value in cartridge, makes little sense to make an enum for this isolated usage
-        //noinspection MapAsCode
         switch (memoryValue) {
             case 0x52:
                 return 72;

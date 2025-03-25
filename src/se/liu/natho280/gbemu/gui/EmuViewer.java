@@ -1,13 +1,11 @@
 package se.liu.natho280.gbemu.gui;
 
 import se.liu.natho280.gbemu.CuteLogger;
-import se.liu.natho280.gbemu.cpu.Reg;
 import se.liu.natho280.gbemu.debugger.DebuggerListener;
 import se.liu.natho280.gbemu.serialization.SerializationWrapper;
 import se.liu.natho280.gbemu.cpu.CPU;
 import se.liu.natho280.gbemu.cpu.GameButton;
 import se.liu.natho280.gbemu.cpu.Memory;
-import se.liu.natho280.gbemu.cpu.Registers;
 import se.liu.natho280.gbemu.debugger.DebugViewer;
 import se.liu.natho280.gbemu.ppu.Display;
 
@@ -22,7 +20,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.HexFormat;
 import java.util.logging.Level;
 
 /**
@@ -175,20 +172,6 @@ public class EmuViewer extends WindowAdapter implements DebuggerListener, Compon
 
     public void removeBreakpoint() {
         debugViewer.removeBreakpointIndex();
-    }
-
-    private void logRegs(Registers regs) {
-        StringBuilder sb = new StringBuilder();
-        HexFormat hex = HexFormat.of();
-
-        sb.append("AF: $").append(hex.toHexDigits((byte)regs.get(Reg.AF)));
-        sb.append("\nBC: $").append(hex.toHexDigits((byte)regs.get(Reg.BC)));
-        sb.append("\nDE: $").append(hex.toHexDigits((byte)regs.get(Reg.DE)));
-        sb.append("\nHL: $").append(hex.toHexDigits((byte)regs.get(Reg.HL)));
-        sb.append("\nSP: $").append(hex.toHexDigits((short)regs.get(Reg.SP)));
-        sb.append("\nPC: $").append(hex.toHexDigits((short)regs.get(Reg.PC)));
-
-        CuteLogger.log(Level.INFO, sb.toString());
     }
 
     public void show() {

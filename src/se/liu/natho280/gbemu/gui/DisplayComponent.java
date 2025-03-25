@@ -13,7 +13,7 @@ import java.awt.image.BufferedImage;
  * finished screen draws.
  */
 public class DisplayComponent extends JComponent implements DisplayListener {
-    private int scalingFactor = 4;
+    private int scalingFactor = 4; // reasonable default scaling (actual size is the size of a stamp, so...)
     private Display display;
 
     private static final int GB_LCD_WIDTH = 160;

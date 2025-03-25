@@ -25,48 +25,48 @@ public class FIFOQueue {
 
     /**
      * Encodes a FIFOPixel to 4 bits
-     * @param fpx FIFOPixel
+     * @param fifoPixel FIFOPixel
      * @return 4 bits signifying the FIFOPixel
      */
-    private int encode(FIFOPixel fpx) {
-        return ((fpx.colorValue << 2) |
-                ((fpx.palette ? 1 : 0) << 1) |
-                (fpx.bgPrio ? 1 : 0));
+    private int encode(FIFOPixel fifoPixel) {
+        return ((fifoPixel.colorValue << 2) |
+                ((fifoPixel.palette ? 1 : 0) << 1) |
+                (fifoPixel.backgroundPrio ? 1 : 0));
     }
 
     /**
      * Decodes 4 bits to a FIFOPixel
-     * @param fpxBits 4 bits
+     * @param fifoPixelBits 4 bits
      * @return a FIFOPixel
      */
-    private FIFOPixel decode(int fpxBits) {
-        return new FIFOPixel(fpxBits >>> 2,
-                             (fpxBits & (1 << 1)) != 0,
-                             (fpxBits & 1) != 0);
+    private FIFOPixel decode(int fifoPixelBits) {
+        return new FIFOPixel(fifoPixelBits >>> 2,
+                             (fifoPixelBits & (1 << 1)) != 0,
+                             (fifoPixelBits & 1) != 0);
     }
 
     /**
      * Add a FIFOPixel to the end of the queue.
-     * @param fpx a FIFOPixel
+     * @param fifoPixel a FIFOPixel
      */
-    public void add(FIFOPixel fpx) {
+    public void add(FIFOPixel fifoPixel) {
         if (length == CAPACITY) {
             throw new IndexOutOfBoundsException("Queue is full");
         }
 
         length++;
         int shift = (((NIBBLES_IN_QUEUE - 1) - (length - 1)) * BITS_PER_NIBBLE);
-        bitfield |= (encode(fpx) << shift);
+        bitfield |= (encode(fifoPixel) << shift);
     }
 
     /**
      * Add pixel at certain index, replacing what is already there
-     * @param fpx a FIFOPixel
+     * @param fifoPixel a FIFOPixel
      */
-    public void addIndex(FIFOPixel fpx, int index) {
+    public void addIndex(FIFOPixel fifoPixel, int index) {
         int shiftIndex = ((NIBBLES_IN_QUEUE - 1) - index) * BITS_PER_NIBBLE;
         bitfield &= (bitfield ^ (0xF << shiftIndex));
-        bitfield |= (encode(fpx) << shiftIndex);
+        bitfield |= (encode(fifoPixel) << shiftIndex);
     }
 
     /**
@@ -89,13 +89,13 @@ public class FIFOQueue {
             throw new IndexOutOfBoundsException("The queue is empty");
         }
 
-        FIFOPixel fpx = getFirst();
+        FIFOPixel fifoPixel = getFirst();
 
         // Shift a nibble out, dec length
         bitfield <<= BITS_PER_NIBBLE;
         length--;
 
-        return fpx;
+        return fifoPixel;
     }
 
     /**

@@ -31,6 +31,15 @@ public class MBC1 extends AbstractMBC {
     private int ramBank = 0;
     private boolean advancedBankingMode = false;
 
+    private static final int END_OF_BANK_1 = 0x3FFF;
+    private static final int END_OF_BANK_2 = 0x7FFF;
+    private static final int RAM_START_ADDRESS = 0xA000;
+    private static final int RAM_END_ADDRESS = 0xBFFF;
+    private static final int RAM_SIZE = 0x2000;
+    private static final int RAM_ENABLE_END = 0x1FFF;
+    private static final int LOWER_BANK_REGISTER = 0x3FFF;
+    private static final int UPPER_BANK_REGISTER = 0x5FFF;
+
     public MBC1(int numberOfBanks) {
         this.numberOfBanks = numberOfBanks;
         CuteLogger.log(Level.INFO, "We have " + numberOfBanks + " banks in this rom");
@@ -56,19 +65,19 @@ public class MBC1 extends AbstractMBC {
     @Override
     public int redirectedAddress(int address) {
         // example: rom.get(address) -> rom[mbc.redirectedAddress(address)]
-        if (address <= 0x3FFF) {
+        if (address <= END_OF_BANK_1) {
             return address;
         }
-        if (address <= 0x7FFF) {
+        if (address <= END_OF_BANK_2) {
             // if we are looking at 0x4000, and bank is 2, we should get back 0x8000
             // Rombank size : 0x4000
             return address + (((romBank == 0 ? 1 : romBank) - 1) * ADDRESS_OFFSET);
         }
-        if (address >= 0xA000 && address <= 0xBFFF) {
-            if ((address - 0xA000 + (ramBank * 0x2000)) >= 0x2000) {
-                CuteLogger.log(Level.SEVERE, Integer.toHexString((address - 0xA000 + (ramBank * 0x2000))).toUpperCase() + " is too big");
+        if (address >= RAM_START_ADDRESS && address <= RAM_END_ADDRESS) {
+            if ((address - RAM_START_ADDRESS + (ramBank * RAM_SIZE)) >= RAM_SIZE) {
+                CuteLogger.log(Level.SEVERE, Integer.toHexString((address - RAM_START_ADDRESS + (ramBank * RAM_SIZE))).toUpperCase() + " is too big");
             }
-            return address - 0xA000 + (ramBank * 0x2000);
+            return address - RAM_START_ADDRESS + (ramBank * RAM_SIZE);
         }
         // else something went wrong
         throw new IllegalArgumentException("Invalid address: " + address);
@@ -151,17 +160,17 @@ public class MBC1 extends AbstractMBC {
      */
     @Override
     public void write(int address, int value) {
-        if (address <= 0x1FFF) {
+        if (address <= RAM_ENABLE_END) {
             // RAM enable register
             if (value == 0xA) {
                 ramEnabled = true;
             } else {
                 ramEnabled = false;
             }
-        } else if (address <= 0x3FFF) {
+        } else if (address <= LOWER_BANK_REGISTER) {
             // ROM bank number
             this.romBank = (value & 0x1F) % numberOfBanks;
-        } else if (address <= 0x5FFF) {
+        } else if (address <= UPPER_BANK_REGISTER) {
             // RAM bank number --OR-- upper bits of ROM bank number
             if (numberOfBanks >= 64) this.highBank = value & 0x3;
             else this.ramBank = (value & 0x3);
