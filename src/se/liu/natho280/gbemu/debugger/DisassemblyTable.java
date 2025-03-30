@@ -56,7 +56,6 @@ public class DisassemblyTable {
      */
     public void redisassembleROM() {
         // listener to MBC, re-disassembles memory bank and replaces
-        // disassemblyTableModel.fireTableDataChanged(); // what the fuck?
 
         this.disassemblyTableModel.setRowCount(0);
         disassembleMemory();
