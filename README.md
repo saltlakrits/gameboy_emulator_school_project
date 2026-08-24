@@ -4,7 +4,7 @@ For a first-year school project in a course in object oriented programming, we h
 
 Sound was never implemented, because the scope of the project was already too large and sound was the easiest part to simply forgo, and a lot of the UI elements were implemented mostly to make the project "more OOP".
 
-I have been interested in rewriting this ever since, and completing it. I would trim a lot of fat, implement sound, implement all (or at least a lot more) memory bank controllers (i.e. support more games), debu some visual issues, but more than anything else: switch language. C, C++ or Rust most likely.
+I have been interested in rewriting this ever since, and completing it. I would trim a lot of fat, implement sound, implement all (or at least a lot more) memory bank controllers (i.e. support more games), debug some visual issues, but more than anything else: switch language. C, C++ or Rust most likely.
 
 # gbEmu
 gbEmu är en Game Boy-emulator, som alltså låter en ladda Game Boy-spel (lättast med filändelsen ".gb") och spela dem. Även avlusningsverktyg finns i programmet, som används för att utveckla programmet men också kan vara intressant för den nyfikne, eller den som skrivit sitt egna Game Boy-spel.
