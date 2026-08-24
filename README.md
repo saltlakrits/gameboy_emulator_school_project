@@ -1,3 +1,11 @@
+# What is this?
+
+For a first-year school project in a course in object oriented programming, we had our first opportunity to create virtually anything we wanted, as long as it was written in Java, in a sufficiently object oriented style.
+
+Sound was never implemented, because the scope of the project was already too large and sound was the easiest part to simply forgo, and a lot of the UI elements were implemented mostly to make the project "more OOP".
+
+I have been interested in rewriting this ever since, and completing it. I would trim a lot of fat, implement sound, implement all (or at least a lot more) memory bank controllers (i.e. support more games), debu some visual issues, but more than anything else: switch language. C, C++ or Rust most likely.
+
 # gbEmu
 gbEmu är en Game Boy-emulator, som alltså låter en ladda Game Boy-spel (lättast med filändelsen ".gb") och spela dem. Även avlusningsverktyg finns i programmet, som används för att utveckla programmet men också kan vara intressant för den nyfikne, eller den som skrivit sitt egna Game Boy-spel.
 
@@ -10,7 +18,7 @@ Avlusningsfönstret består av:
 - En vy av alla processorns register (övre högra hörnet) och vad som finns i dem. Dessa uppdateras endast när emulatorn är pausad.
 - En vy av alla brytpunkter (under registervyn), som man kan lägga till brytpunkter i genom panelen i avlusningsfönstret (under "Debug") alternativt genom att trycka på F9 (lägg till brytpunk) och F10 (ta bort brytpunkt). Under "Debug" kan man även ta bort samtliga skapade brytpunkter på en gång. När brytpunkter är satta kommer emulatorn automatiskt pausas när programräknaren når brytpunktens adress.
 - En vy av minnet, och vad som finns i varje adress (nedre halvan av fönstret). Observera att adresserna \$0000 till \$7FFF tillhör ROM-filen, och därför oftast är mer lämpliga att läsas av som instruktioner i disassemblyvyn snarare än numeriska värden i minnesvyn.
-  Observera att gbEmu inte ännu stödjer ljud!  Det saknas ävem stöd för spel som använder någon annan memory bank controller än MBC1, alternativt ingen alls. I slutet av dokumentationen finns en lista på bekräftat fungerande spel.
+  Observera att gbEmu inte ännu stödjer ljud!  Det saknas även stöd för spel som använder någon annan memory bank controller än MBC1, alternativt ingen alls. I slutet av dokumentationen finns en lista på bekräftat fungerande spel.
 
 ### Kontroller för spel:
 + WASD: pil-knapparna
